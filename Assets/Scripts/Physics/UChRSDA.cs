@@ -35,13 +35,13 @@ public class UChRSDA : MonoBehaviour
     void Start()
     {
         // Convert Unity position and rotation to Chrono ChFrame for body1
-        ChVector3d position1 = Utils.ToChrono(body1.transform.position);
-        ChQuaterniond rotation1 = Utils.ToChrono(body1.transform.rotation);
+        ChVector3d position1 = Utils.ToChronoFlip(body1.transform.position);
+        ChQuaterniond rotation1 = Utils.ToChronoFlip(body1.transform.rotation);
         ChFramed frame1 = new ChFramed(position1, rotation1);
 
         // Convert Unity position and rotation to Chrono ChFrame for body2
-        ChVector3d position2 = Utils.ToChrono(body2.transform.position);
-        ChQuaterniond rotation2 = Utils.ToChrono(body2.transform.rotation);
+        ChVector3d position2 = Utils.ToChronoFlip(body2.transform.position);
+        ChQuaterniond rotation2 = Utils.ToChronoFlip(body2.transform.rotation);
         ChFramed frame2 = new ChFramed(position2, rotation2);
 
         // create and initialise the RSDA

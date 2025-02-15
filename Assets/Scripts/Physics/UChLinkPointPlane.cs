@@ -36,17 +36,17 @@ public class UChLinkPointPlane : MonoBehaviour
         }
 
         // ChFrame setupfor the point
-        ChVector3d pointLocation1 = Utils.ToChrono(pointOnBody1);
+        ChVector3d pointLocation1 = Utils.ToChronoFlip(pointOnBody1);
         // No meaningful rotation for the point
-        ChQuaterniond pointRotation1 = Utils.ToChrono(Quaternion.identity);
+        ChQuaterniond pointRotation1 = Utils.ToChronoFlip(Quaternion.identity);
 
         // Chframe for the plane
         // Use local normal to define the plane's rotation
         Quaternion planeLocalRotation = Quaternion.LookRotation(planeNormalBody2, Vector3.up);
 
         // Convert local plane position and rotation to Chrono
-        ChVector3d planeLocation2 = Utils.ToChrono(planeLocalBody2);
-        ChQuaterniond planeRotation = Utils.ToChrono(planeLocalRotation);
+        ChVector3d planeLocation2 = Utils.ToChronoFlip(planeLocalBody2);
+        ChQuaterniond planeRotation = Utils.ToChronoFlip(planeLocalRotation);
 
         // Set the frames
         var frame1 = new ChFramed(pointLocation1, pointRotation1);

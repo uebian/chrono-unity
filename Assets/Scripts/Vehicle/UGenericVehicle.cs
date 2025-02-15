@@ -21,7 +21,7 @@ public class UGenericVehicle : UChVehicle
     // This field holds the full path to the selected configuration, including the file name and extension.
     [SerializeField]
     [HideInInspector]
-    private string selectedConfiguration;
+    public string selectedConfiguration;
     public bool chassisFixed;
     public ChTire.CollisionType tireCollisionType;
     public bool brakeLocking;

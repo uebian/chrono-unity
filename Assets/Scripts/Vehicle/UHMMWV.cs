@@ -91,7 +91,7 @@ public class UHMMWV : UChVehicle
         hmmwv.EnableBrakeLocking(brakeLocking);
 
         hmmwv.SetEngineType(EngineModelType.SHAFTS);
-        hmmwv.SetTransmissionType(TransmissionModelType.AUTOMATIC_SHAFTS);        
+        hmmwv.SetTransmissionType(TransmissionModelType.AUTOMATIC_SHAFTS);
 
         ////Vector3 pos = transform.position;
         ////Quaternion quat = transform.rotation;
@@ -225,4 +225,3 @@ public class UHMMWV : UChVehicle
     }
 
 }
-

@@ -47,12 +47,12 @@ public class UChLinkLockLock : MonoBehaviour
         }
 
         // Convert the local position and rotation to Chrono types for body1
-        ChVector3d positionBody1 = Utils.ToChrono(body1.transform.TransformPoint(localPositionOnBody1));
-        ChQuaterniond rotationBody1 = Utils.ToChrono(body1.transform.rotation);
+        ChVector3d positionBody1 = Utils.ToChronoFlip(body1.transform.TransformPoint(localPositionOnBody1));
+        ChQuaterniond rotationBody1 = Utils.ToChronoFlip(body1.transform.rotation);
 
         // Convert the local position and rotation to Chrono types for body2
-        ChVector3d positionBody2 = Utils.ToChrono(body2.transform.TransformPoint(localPositionOnBody2));
-        ChQuaterniond rotationBody2 = Utils.ToChrono(body2.transform.rotation);
+        ChVector3d positionBody2 = Utils.ToChronoFlip(body2.transform.TransformPoint(localPositionOnBody2));
+        ChQuaterniond rotationBody2 = Utils.ToChronoFlip(body2.transform.rotation);
 
 
         // Define the initial frames for the link based on the specified local positions and rotations

@@ -1,0 +1,13 @@
+{
+  "Name": "HMMWV Simple Engine",
+  "Type": "Engine",
+  "Template": "EngineSimple",
+  "Axles": [],
+  "Steering Subsystems": [],
+  "Wheelbase": 3.0,
+  "Minimum Turning Radius": 7.0,
+  "Maximum Steering Angle (deg)": 30.0,
+  "Maximum Engine Torque": 330,
+  "Maximum Engine Power": 110000,
+  "Maximum Engine Speed": 10000
+}

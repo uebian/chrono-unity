@@ -37,7 +37,7 @@ public class UChJointRevolute : MonoBehaviour
     void Start()
     {
         joint = new ChLinkLockRevolute();
-        ChFramed csys = new ChFramed(Utils.ToChrono(transform.position), Utils.ToChrono(transform.rotation));
+        ChFramed csys = new ChFramed(Utils.ToChronoFlip(transform.position), Utils.ToChronoFlip(transform.rotation));
         joint.Initialize(body1.GetChBody(), body2.GetChBody(), csys);
 
         
@@ -58,8 +58,8 @@ public class UChJointRevolute : MonoBehaviour
     {
         
         var csys = joint.GetMarker1().GetAbsCoordsys();
-        transform.position = Utils.FromChrono(csys.pos);
-        transform.rotation = Utils.FromChrono(csys.rot);
+        transform.position = Utils.FromChronoFlip(csys.pos);
+        transform.rotation = Utils.FromChronoFlip(csys.rot);
 
         angle = joint.GetRelAngle() * (180 / Mathf.PI);
         angle = (int)(angle * 100.0f) / 100.0f;

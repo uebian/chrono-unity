@@ -86,9 +86,9 @@ public class UChBody : MonoBehaviour
     {
         Debug.Log("Name:      " + gameObject.name + "\n" +
                   "Mass:      " + body.GetMass() + "\n" +
-                  "COM:       " + Utils.FromChrono(body.GetFrameCOMToRef().GetPos()) + "\n" +
+                  "COM:       " + Utils.FromChronoFlip(body.GetFrameCOMToRef().GetPos()) + "\n" + // flip the COM out of chrono
                   "inertiaXX: " + Utils.FromChrono(body.GetInertiaXX()) + "\n" +
-                  "inertiaXY: " + Utils.FromChrono(body.GetInertiaXY()));
+                  "inertiaXY: " + Utils.FromChronoFlip(body.GetInertiaXY())); // convert chrono RHF interia to the LHF unity for user to read in unity context
     }
 
     public virtual void InstanceCreation()
@@ -96,20 +96,25 @@ public class UChBody : MonoBehaviour
         ///Debug.Log("Body Awake()");
         if (body == null)
             Create(); // if this is called by a generator script, ensure we create a body.
-
-        CalculateMassProperties();
+        
+        // only calculate mass properties if the auto mass is ticked, otherwise, skip and assume user-entered values.
+        if (automaticMass)
+            CalculateMassProperties();
+        
+        // intertia and mass now should be either set by user, or auto calculated with the override
         body.SetMass(mass);
-        body.SetFrameCOMToRef(new ChFramed(Utils.ToChrono(COM)));
-        body.SetInertiaXX(Utils.ToChrono(inertiaMoments));
-        body.SetInertiaXY(Utils.ToChrono(inertiaProducts));
+        // Need flipping to ensure correct placement
+        body.SetFrameCOMToRef(new ChFramed(Utils.ToChronoFlip(COM)));
+        body.SetInertiaXX(Utils.ToChrono(inertiaMoments)); // no flipping on the diagonal - because a pure z→−zz→−z reflection does not change Ixx, Iyy, Izz
+        body.SetInertiaXY(Utils.ToChronoFlip(inertiaProducts)); // flip the Z inertia.
 
         body.SetFixed(isFixed);
         body.EnableCollision(collide);
 
-        body.SetFrameRefToAbs(new ChFramed(Utils.ToChrono(transform.position), Utils.ToChrono(transform.rotation)));
+        body.SetFrameRefToAbs(new ChFramed(Utils.ToChronoFlip(transform.position), Utils.ToChronoFlip(transform.rotation)));
 
-        body.SetPosDt(Utils.ToChrono(linearVelocity));
-        body.SetAngVelLocal(Utils.ToChrono(angularVelocity));
+        body.SetPosDt(Utils.ToChronoFlip(linearVelocity));
+        body.SetAngVelLocal(Utils.ToChronoFlip(angularVelocity));
 
         ////DebugInfo();
         if (UChSystem.chrono_system != null)
@@ -133,10 +138,11 @@ public class UChBody : MonoBehaviour
 
         // Update body state
         var frame = body.GetFrameRefToAbs();
-        transform.position = Utils.FromChrono(frame.GetPos());
-        transform.rotation = Utils.FromChrono(frame.GetRot());
-        linearVelocity = Utils.FromChrono(frame.GetPosDt());
-        angularVelocity = Utils.FromChrono(frame.GetAngVelLocal());
+        // Ensure flipped for chrono-unity
+        transform.position = Utils.FromChronoFlip(frame.GetPos());
+        transform.rotation = Utils.FromChronoFlip(frame.GetRot());
+        linearVelocity = Utils.FromChronoFlip(frame.GetPosDt());
+        angularVelocity = Utils.FromChronoFlip(frame.GetAngVelLocal());
     }
 
     void OnDrawGizmos()

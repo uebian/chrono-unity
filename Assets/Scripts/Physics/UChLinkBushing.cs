@@ -51,7 +51,7 @@ public class UChLinkBushing : MonoBehaviour
         }
 
         bushing = new ChLinkBushing();
-        ChFramed csys = new ChFramed(Utils.ToChrono(transform.position), Utils.ToChrono(transform.rotation)); // taken from the existing game object to which the bushing is attached
+        ChFramed csys = new ChFramed(Utils.ToChronoFlip(transform.position), Utils.ToChronoFlip(transform.rotation)); // taken from the existing game object to which the bushing is attached
 
         // Setup the stiffness and damping
         kFactor = new ChMatrix66d();
@@ -91,14 +91,14 @@ public class UChLinkBushing : MonoBehaviour
     {
         // translate/rotate the bushing's game object in line with Chrono at computer FPS
         var csys = bushing.GetMarker1().GetAbsCoordsys();
-        transform.position = Utils.FromChrono(csys.pos);
-        transform.rotation = Utils.FromChrono(csys.rot);
+        transform.position = Utils.FromChronoFlip(csys.pos);
+        transform.rotation = Utils.FromChronoFlip(csys.rot);
     }
 
     private void FixedUpdate()
     {
-        var torque = Utils.FromChrono(bushing.GetTorque());
-        var force = Utils.FromChrono(bushing.GetForce());
+        var torque = Utils.FromChronoFlip(bushing.GetTorque());
+        var force = Utils.FromChronoFlip(bushing.GetForce());
         // printouts
         Debug.Log("Bushing Torque: " + torque);
         Debug.Log("Bushing Force: " + force);

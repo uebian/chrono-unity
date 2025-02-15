@@ -44,11 +44,11 @@ public class UChBodyConvexHull : UChBody
 
     public override void Create()
     {
+        // Note that UChBody will handle the flip across to Chrono -z axis (Unity's LHF to Chrono's RHF)
 
         if (points.Count == 0)
         {
             Debug.Log("No points in convex hull (" + gameObject.name + ")");
-
             // return; // commented out the return to allow the creation of convex hull using script, for e.g. earthquake demo.
         }
 
@@ -71,7 +71,7 @@ public class UChBodyConvexHull : UChBody
                 foreach (Vector3 vertex in vertices)
                 {
                     // convert to Chrono Vector and system
-                    p.Add(Utils.ToChrono(vertex));
+                    p.Add(Utils.ToChronoFlip(vertex));  // No need to flip here. Handled in UChBody
                 }
             }
             else
@@ -85,7 +85,7 @@ public class UChBodyConvexHull : UChBody
             // Parse the vertices specified in the Editor
             for (int i = 0; i < points.Count; i++)
             {
-                p.Add(Utils.ToChrono(points[i]));
+                p.Add(Utils.ToChronoFlip(points[i])); // No need to flip here, as the user should enter x,y,z points in the Unity context.
             }
         }
         // Note: the mass properties are automatically set on body construction
@@ -94,9 +94,9 @@ public class UChBodyConvexHull : UChBody
 
         // Update UChBody properties
         mass = bodyCH.GetMass();
-        COM = Utils.FromChrono(bodyCH.GetFrameCOMToRef().GetPos());
+        COM = Utils.FromChronoFlip(bodyCH.GetFrameCOMToRef().GetPos());
         inertiaMoments = Utils.FromChrono(bodyCH.GetInertiaXX());
-        inertiaProducts = Utils.FromChrono(bodyCH.GetInertiaXY());
+        inertiaProducts = Utils.FromChrono(bodyCH.GetInertiaXY()); // read the chrono auto calculated value
 
         // TODO: Exapnd this to work with 'meshfilter' sourced vertices which could be passed through
         if (showCollisionShape)
@@ -126,10 +126,11 @@ public class UChBodyConvexHull : UChBody
                 int v1 = chrono_mesh.GetIndicesVertexes()[i].x;
                 int v2 = chrono_mesh.GetIndicesVertexes()[i].y;
                 int v3 = chrono_mesh.GetIndicesVertexes()[i].z;
-
-                vertices[3 * i + 0] = Utils.FromChrono(chrono_mesh.GetCoordsVertices()[v1]);
-                vertices[3 * i + 1] = Utils.FromChrono(chrono_mesh.GetCoordsVertices()[v2]);
-                vertices[3 * i + 2] = Utils.FromChrono(chrono_mesh.GetCoordsVertices()[v3]);
+                
+                // NOTE: v1-v3-v2 counter-clockwise order for unity rendering of collision shape
+                vertices[3 * i + 0] = Utils.FromChronoFlip(chrono_mesh.GetCoordsVertices()[v1]);
+                vertices[3 * i + 1] = Utils.FromChronoFlip(chrono_mesh.GetCoordsVertices()[v3]); // Note: clockwise winding!
+                vertices[3 * i + 2] = Utils.FromChronoFlip(chrono_mesh.GetCoordsVertices()[v2]);
 
                 Vector3 nrm = Vector3.Cross(vertices[3 * i + 1] - vertices[3 * i + 0], vertices[3 * i + 2] - vertices[3 * i + 1]);
                 normals[3 * i + 0] = nrm;
