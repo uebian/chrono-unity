@@ -840,7 +840,7 @@ PrefabInstance:
     - target: {fileID: 4721149938721439471, guid: a3fbde8c8e9b5a845a69c6f3b9adaab3,
         type: 3}
       propertyPath: tireModel
-      value: 7
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 4721149938721439471, guid: a3fbde8c8e9b5a845a69c6f3b9adaab3,
         type: 3}

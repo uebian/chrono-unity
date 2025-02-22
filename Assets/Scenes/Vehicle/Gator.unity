@@ -38,7 +38,6 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.451196, g: 0.49989152, b: 0.56806445, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -697,7 +696,7 @@ PrefabInstance:
     - target: {fileID: 4721149938721439471, guid: a3fbde8c8e9b5a845a69c6f3b9adaab3,
         type: 3}
       propertyPath: tireModel
-      value: 7
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 4721149938721439471, guid: a3fbde8c8e9b5a845a69c6f3b9adaab3,
         type: 3}
