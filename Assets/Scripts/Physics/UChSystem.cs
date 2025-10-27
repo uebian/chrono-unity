@@ -169,7 +169,7 @@ public class UChSystem : MonoBehaviour
 
         // Set the path to the Chrono data files so that all data is contextualised to the ChronoUnity data directory.
         chrono.SetChronoDataPath(Application.streamingAssetsPath + physicsDataLocation);
-        chrono_vehicle.SetDataPath(Application.streamingAssetsPath + vehicleDataLocation);
+        chrono_vehicle.SetVehicleDataPath(Application.streamingAssetsPath + vehicleDataLocation);
 
         switch (contact_method)
         {

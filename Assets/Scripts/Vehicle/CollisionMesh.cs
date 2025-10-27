@@ -130,7 +130,7 @@ public class CollisionMeshAllBodies : MonoBehaviour
                 // Convert shape frame to position+rotation (instead of matrix)
                 Vector3 shapePos;
                 Quaternion shapeRot;
-                ConvertFrameToPositionRotation(shapeInstance.second, out shapePos, out shapeRot);
+                ConvertFrameToPositionRotation(shapeInstance.frame, out shapePos, out shapeRot);
 
                 // Prepare a shape info entry
                 ShapeInfo sInfo = new ShapeInfo();
@@ -140,7 +140,7 @@ public class CollisionMeshAllBodies : MonoBehaviour
                 shapeInfos.Add(sInfo);
 
                 // Gather lines for this shape
-                AddShapeLines(shapeInstance.first, currentShapeIndex);
+                AddShapeLines(shapeInstance.shape, currentShapeIndex);
 
                 currentShapeIndex++;
             }

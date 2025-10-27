@@ -96,7 +96,7 @@ public class UWheeledVehicle : UChVehicle
         }
 
         // resolve actual file path
-        string vehicleJson = chrono_vehicle.GetDataFile(fileName);
+        string vehicleJson = chrono_vehicle.GetVehicleDataFile(fileName);
         if (!File.Exists(vehicleJson))
         {
             Debug.LogWarning($"{name}: top-level JSON not found: {vehicleJson}");
@@ -130,8 +130,8 @@ public class UWheeledVehicle : UChVehicle
             // read & initialise engine+trans
             if (!string.IsNullOrEmpty(engineJSON) && !string.IsNullOrEmpty(transJSON))
             {
-                string engPath = chrono_vehicle.GetDataFile(engineJSON);
-                string transPath = chrono_vehicle.GetDataFile(transJSON);
+                string engPath = chrono_vehicle.GetVehicleDataFile(engineJSON);
+                string transPath = chrono_vehicle.GetVehicleDataFile(transJSON);
 
                 if (File.Exists(engPath) && File.Exists(transPath))
                 {
@@ -157,7 +157,7 @@ public class UWheeledVehicle : UChVehicle
 
                 if (useSingleTireFile)
                 {
-                    tirePath = chrono_vehicle.GetDataFile(tireJSON);
+                    tirePath = chrono_vehicle.GetVehicleDataFile(tireJSON);
                 }
                 else
                 {
@@ -166,7 +166,7 @@ public class UWheeledVehicle : UChVehicle
                         string userTireFile = perAxleTireSpec[axleIndex];
                         if (!string.IsNullOrEmpty(userTireFile))
                         {
-                            tirePath = chrono_vehicle.GetDataFile(userTireFile);
+                            tirePath = chrono_vehicle.GetVehicleDataFile(userTireFile);
                         }
                     }
                 }

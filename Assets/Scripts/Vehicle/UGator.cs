@@ -11,6 +11,7 @@
 // Authors: Radu Serban, Josh Diyn
 // =============================================================================
 
+using System;
 using UnityEngine;
 
 public class UGator : UChVehicle

@@ -139,7 +139,7 @@ PrefabInstance:
     - target: {fileID: 7194074963564705906, guid: 434044898e2439248a0db16bad6f0518,
         type: 3}
       propertyPath: step
-      value: 0.005
+      value: 0.001
       objectReference: {fileID: 0}
     - target: {fileID: 7194074963564705906, guid: 434044898e2439248a0db16bad6f0518,
         type: 3}

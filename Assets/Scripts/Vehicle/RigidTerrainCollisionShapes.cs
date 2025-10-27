@@ -54,15 +54,15 @@ public class RigidTerrainCollisionShapes : MonoBehaviour
             for (int shapeIndex = 0; shapeIndex < numShapes; shapeIndex++)
             {
                 var shapeInstance = groundBody.GetCollisionModel().GetShapeInstance(shapeIndex);
-                ChFramed localFrame = shapeInstance.second; // Get local frame
+                ChFramed localFrame = shapeInstance.frame; // Get local frame
                 ChFramed worldFrame = groundBody.GetFrameRefToAbs();
-                ChCollisionShape.Type shapeType = shapeInstance.first.GetType();
+                ChCollisionShape.Type shapeType = shapeInstance.shape.GetType();
 
                 switch (shapeType)
                 {
                     // Most rigid terrain is either box patches or trianglemesh
                     case ChCollisionShape.Type.TRIANGLEMESH:
-                        var chronoMesh = chrono.CastToChCollisionShapeTriangleMesh(shapeInstance.first);
+                        var chronoMesh = chrono.CastToChCollisionShapeTriangleMesh(shapeInstance.shape);
                         for (uint i = 0; i < chronoMesh.GetMesh().GetNumTriangles(); i++)
                         {
                             var triangle = chronoMesh.GetMesh().GetTriangle(i);
@@ -81,7 +81,7 @@ public class RigidTerrainCollisionShapes : MonoBehaviour
                     
                     // Primitives usually make use of just boxes
                     case ChCollisionShape.Type.BOX:
-                        var chronoBox = chrono.CastToChCollisionShapeBox(shapeInstance.first);
+                        var chronoBox = chrono.CastToChCollisionShapeBox(shapeInstance.shape);
                         ChVector3d halfExtents = chronoBox.GetHalflengths();
                         var center = new ChVector3d(0, 0, 0); // (assuming easybox with centre at the local origin)
 
