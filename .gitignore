@@ -51,6 +51,12 @@ ExportedObj/
 *.pidb.meta
 *.pdb.meta
 *.mdb.meta
+*.exr.meta
+
+# Unity3D generated lighting files
+LightingData.asset*
+ReflectionProbeData*.exr
+*.exr
 
 # Unity3D generated file on crash reports
 sysinfo.txt

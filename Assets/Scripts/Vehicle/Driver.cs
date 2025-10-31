@@ -114,7 +114,7 @@ public class Driver : MonoBehaviour, IAdvance
     void Start()
     {
         // Register with the Chrono system (for Advance).
-        UChSystem system = (UChSystem)FindObjectOfType(typeof(UChSystem));
+        UChSystem system = UnityEngine.Object.FindFirstObjectByType<UChSystem>();
         system.Register(gameObject.name + "_driver", this);
 
         double step = UChSystem.chrono_system.GetStep();

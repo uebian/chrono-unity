@@ -30,7 +30,7 @@ public class UChRigidTerrainManager : MonoBehaviour
         chronoRigidTerrain = new RigidTerrain(UChSystem.chrono_system);
 
         // Find all TerrainPatch components and add them as patches
-        var patches = FindObjectsOfType<UChRigidTerrainPatch>();
+        var patches = UnityEngine.Object.FindObjectsByType<UChRigidTerrainPatch>(FindObjectsSortMode.None);
         foreach (var patch in patches)
         {
             if (patch.patchType == UChRigidTerrainPatch.PatchType.boxPatch)

@@ -61,6 +61,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _AmbientOcclusion: 1
     - _BumpScale: 1
     - _CheckerSize: 0.5
     - _Cutoff: 0.5
@@ -69,16 +70,25 @@ Material:
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
-    - _Metallic: 0
+    - _Metallic: 0.215
     - _Mode: 0
+    - _NoiseScale: 5
+    - _NoiseStrength: 0.15
     - _OcclusionStrength: 1
     - _Parallax: 0.02
+    - _Smoothness: 0.543
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
+    - _TreadDepth: 0.345
+    - _TreadFrequency: 20
+    - _TreadIntensity: 0.35
+    - _TreadSkew: 1.5
+    - _TreadWidth: 0.499
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
   m_BuildTextureStacks: []
+  m_AllowLocking: 1

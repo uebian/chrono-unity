@@ -1,15 +1,31 @@
 using System.Collections.Generic;
 using UnityEngine;
-using System.Runtime.InteropServices; // for StructLayout if needed
+using System.Runtime.InteropServices;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 
 [DefaultExecutionOrder(500)]
 public class CollisionMeshAllBodies : MonoBehaviour
 {
     // --------------------------------------------------------
-    // Materials and Shaders
+    // Shaders and Settings
     // --------------------------------------------------------
-    private Material lineMaterial;
+    [Header("Shaders")]
+    [Tooltip("Auto-loaded from Resources if not assigned")]
     public ComputeShader transformShader;
+    
+    [HideInInspector]
+    public Shader drawShader;
+    
+    [Header("Line Settings")]
+    public Color lineColor = Color.cyan;
+    public float maxDistance = 25f;
+    
+    [Header("Optimization")]
+    [Tooltip("Only rebuild geometry when collision shapes change")]
+    public bool useLazyRefresh = true;
+    
+    private Material lineMaterial;
 
     // --------------------------------------------------------
     // Compute Buffers
@@ -26,28 +42,32 @@ public class CollisionMeshAllBodies : MonoBehaviour
     // --------------------------------------------------------
     // CPU-side Data
     // --------------------------------------------------------
-    private List<Vector3> allVertices = new List<Vector3>();
-    private List<int> shapeIndexPerVertex = new List<int>();
+    private List<Vector3> allVertices = new List<Vector3>(8192);
+    private List<int> shapeIndexPerVertex = new List<int>(8192);
 
     // Instead of storing localTransform as Matrix4x4,
-    // we store local position + quaternion + body index.
-    [StructLayout(LayoutKind.Sequential)]
+    // we store local position + quaternion + body index
+    [StructLayout(LayoutKind.Sequential, Pack = 4)]
     private struct ShapeInfo
     {
         public Vector3 shapePos;    // local translation
+        public float _pad0;
         public Quaternion shapeRot; // local rotation
         public int bodyIndex;       // which body the shape belongs to
+        public int _pad1, _pad2, _pad3;
     }
-    private List<ShapeInfo> shapeInfos = new List<ShapeInfo>();
+    private List<ShapeInfo> shapeInfos = new List<ShapeInfo>(512);
 
-    // For each body, we'll store pos + rot in BodyData.
-    [StructLayout(LayoutKind.Sequential)]
+    // For each body, store pos + rot in BodyData - this can be somewhat complicated if too many but should
+    // still be faster than non-cached approach (more mem tho)
+    [StructLayout(LayoutKind.Sequential, Pack = 4)]
     private struct BodyData
     {
         public Vector3 pos;
+        public float _pad0;
         public Quaternion rot;
     }
-    private List<BodyData> bodyDataCPU = new List<BodyData>();
+    private List<BodyData> bodyDataCPU = new List<BodyData>(256);
 
     // --------------------------------------------------------
     // Chrono Body System
@@ -55,58 +75,85 @@ public class CollisionMeshAllBodies : MonoBehaviour
     private vector_ChBody allBodies = new vector_ChBody();
 
     // --------------------------------------------------------
-    // Scene-Change Detection (Track Body Counts)
+    // Scene-Change Detection - track body count
+    // TODO - for dynamic mesh (in future!) - this will need more work
     // --------------------------------------------------------
     private int prevNumBodies = 0;
     private int prevNumBodiesActive = 0;
     private int prevNumBodiesSleeping = 0;
     private int prevNumBodiesFixed = 0;
+    private int framesSinceRebuild = 0;
+    private const int REBUILD_CHECK_INTERVAL = 30;
+    private bool geometryDirty = true;
 
-    // --------------------------------------------------------
-    // Unity Lifecycle
-    // --------------------------------------------------------
     void Start()
     {
-        // 1) Find our required line-drawing shader
-        Shader shader = Shader.Find("Custom/DrawCollisionShape");
-        if (shader == null)
+        // Find the line-drawing shader
+        if (drawShader == null)
         {
-            Debug.LogError("'DrawCollisionShape' shader not found.");
-            enabled = false;
-            return;
+            drawShader = Shader.Find("Custom/DrawCollisionShape");
+            if (drawShader == null)
+            {
+                Debug.LogError("DrawCollisionShape shader not found via Inspector or Shader.Find");
+                enabled = false;
+                return;
+            }
         }
-        lineMaterial = new Material(shader);
+        lineMaterial = new Material(drawShader);
+        lineMaterial.SetColor("_Color", lineColor);
+        lineMaterial.SetFloat("_MaxDistance", maxDistance);
 
-        // 2) Load our transform compute shader
-        transformShader = (ComputeShader)Resources.Load("VertexTransform");
+        // Load our transform compute shader
         if (transformShader == null)
         {
-            Debug.LogError("'VertexTransform' compute shader not found.");
+            transformShader = Resources.Load<ComputeShader>("VertexTransform");
+            if (transformShader == null)
+            {
+                Debug.LogError("VertexTransform compute shader missing or not in Resources/");
+                enabled = false;
+                return;
+            }
+        }
+        
+        kernelHandle = transformShader.FindKernel("CSMain");
+        if (kernelHandle < 0)
+        {
+            Debug.LogError("CSMain kernel not found in transformShader");
             enabled = false;
             return;
         }
 
-        // 3) Get current Chrono bodies
+        // Get current Chrono bodies
         allBodies = UChSystem.chrono_system.GetBodies();
 
-        // 4) Build shape data (collect line segments for all shapes)
+        // Build shape data (collect line segments for all shapes)
         BuildShapeData();
 
-        // 5) Create GPU buffers
+        // Create GPU buffers
         InitializeComputeBuffers();
 
-        buffersSet = true;
-
-        // 6) Store initial Chrono body counters for scene-change detection
+        // Store initial Chrono body counters for scene-change detection
         prevNumBodies = (int)UChSystem.chrono_system.GetNumBodies();
         prevNumBodiesActive = (int)UChSystem.chrono_system.GetNumBodiesActive();
         prevNumBodiesSleeping = (int)UChSystem.chrono_system.GetNumBodiesSleeping();
         prevNumBodiesFixed = (int)UChSystem.chrono_system.GetNumBodiesFixed();
+        
+        geometryDirty = false;
+    }
+    
+    void OnEnable()
+    {
+        RenderPipelineManager.endCameraRendering += OnRenderCallback;
+    }
+
+    void OnDisable()
+    {
+        RenderPipelineManager.endCameraRendering -= OnRenderCallback;
     }
 
     // --------------------------------------------------------
     // Build wireframe data (line segments) from each shape
-    // in every body.
+    // in every body
     // --------------------------------------------------------
     void BuildShapeData()
     {
@@ -133,10 +180,16 @@ public class CollisionMeshAllBodies : MonoBehaviour
                 ConvertFrameToPositionRotation(shapeInstance.frame, out shapePos, out shapeRot);
 
                 // Prepare a shape info entry
-                ShapeInfo sInfo = new ShapeInfo();
-                sInfo.shapePos = shapePos;
-                sInfo.shapeRot = shapeRot;
-                sInfo.bodyIndex = b;
+                ShapeInfo sInfo = new ShapeInfo
+                {
+                    shapePos = shapePos,
+                    shapeRot = shapeRot,
+                    bodyIndex = b,
+                    _pad0 = 0,
+                    _pad1 = 0,
+                    _pad2 = 0,
+                    _pad3 = 0
+                };
                 shapeInfos.Add(sInfo);
 
                 // Gather lines for this shape
@@ -189,26 +242,29 @@ public class CollisionMeshAllBodies : MonoBehaviour
         // Release existing buffers (if re-initializing)
         ReleaseBuffers();
 
-        // 1) Vertex positions
-        vertexBuffer = new ComputeBuffer(allVertices.Count, sizeof(float) * 3);
+        if (allVertices.Count == 0)
+        {
+            buffersSet = false;
+            return;
+        }
+
+        // Vertex positions
+        vertexBuffer = new ComputeBuffer(allVertices.Count, 12, ComputeBufferType.Default);
         vertexBuffer.SetData(allVertices);
 
-        // 2) Which shape each vertex belongs to
-        vertexShapeIndexBuffer = new ComputeBuffer(shapeIndexPerVertex.Count, sizeof(int));
+        // Which shape each vertex belongs to
+        vertexShapeIndexBuffer = new ComputeBuffer(shapeIndexPerVertex.Count, 4, ComputeBufferType.Default);
         vertexShapeIndexBuffer.SetData(shapeIndexPerVertex);
 
-        // 3) The shape info array
-        // Each ShapeInfo: Vector3 (12 bytes) + Quaternion (16 bytes) + int (4 bytes) = 32 bytes total
-        shapeInfoBuffer = new ComputeBuffer(shapeInfos.Count, 32);
+        // The shape info array (48 bytes with padding)
+        shapeInfoBuffer = new ComputeBuffer(shapeInfos.Count, 48, ComputeBufferType.Default);
         shapeInfoBuffer.SetData(shapeInfos);
 
-        // 4) The body data array: Vector3 pos (12 bytes) + Quaternion rot (16 bytes) = 28 bytes
-        // For simplicity, we use 32 bytes stride or you can keep 28. Example:
-        int bodyStride = 12 + 16; // = 28
-        bodyDataBuffer = new ComputeBuffer(allBodies.Count, bodyStride);
+        // The body data array (32 bytes with padding)
+        bodyDataBuffer = new ComputeBuffer(allBodies.Count, 32, ComputeBufferType.Default);
 
-        // 5) The final transformed positions
-        transformedVertexBuffer = new ComputeBuffer(allVertices.Count, sizeof(float) * 3);
+        // The final transformed positions
+        transformedVertexBuffer = new ComputeBuffer(allVertices.Count, 12, ComputeBufferType.Default);
 
         // Bind to the compute shader
         kernelHandle = transformShader.FindKernel("CSMain");
@@ -218,54 +274,69 @@ public class CollisionMeshAllBodies : MonoBehaviour
         transformShader.SetBuffer(kernelHandle, "bodyData", bodyDataBuffer);
         transformShader.SetBuffer(kernelHandle, "transformedVertices", transformedVertexBuffer);
 
-        // Pass array lengths to the compute shader
+        // Pass array lengths to the compute shader (so GPU knows sizes)
         transformShader.SetInt("vertexCount", allVertices.Count);
         transformShader.SetInt("shapeCount", shapeInfos.Count);
         transformShader.SetInt("bodyCount", allBodies.Count);
+        
+        buffersSet = true;
     }
 
-    // --------------------------------------------------------
-    // Called every frame
-    // --------------------------------------------------------
     void Update()
     {
         if (!buffersSet)
             return;
 
-        // 1) Detect changes in the Chrono system (body counts)
-        int numBodies = (int)UChSystem.chrono_system.GetNumBodies();
-        int numBodiesActive = (int)UChSystem.chrono_system.GetNumBodiesActive();
-        int numBodiesSleeping = (int)UChSystem.chrono_system.GetNumBodiesSleeping();
-        int numBodiesFixed = (int)UChSystem.chrono_system.GetNumBodiesFixed();
-
-        // If there's any difference from last frame, we do a "scene rebuild"
-        if (numBodies != prevNumBodies ||
-            numBodiesActive != prevNumBodiesActive ||
-            numBodiesSleeping != prevNumBodiesSleeping ||
-            numBodiesFixed != prevNumBodiesFixed)
+        // Check for scene changes based on lazy refresh setting
+        if (useLazyRefresh)
         {
-            // Rebuild shape data and buffers
-            RebuildSceneData();
+            framesSinceRebuild++;
 
-            // Update stored counters
-            prevNumBodies = numBodies;
-            prevNumBodiesActive = numBodiesActive;
-            prevNumBodiesSleeping = numBodiesSleeping;
-            prevNumBodiesFixed = numBodiesFixed;
+            // Only check for scene changes periodically (not every frame)
+            if (framesSinceRebuild >= REBUILD_CHECK_INTERVAL)
+            {
+                framesSinceRebuild = 0;
+                
+                // Detect changes in the Chrono system (body counts)
+                int numBodies = (int)UChSystem.chrono_system.GetNumBodies();
+                int numBodiesActive = (int)UChSystem.chrono_system.GetNumBodiesActive();
+                int numBodiesSleeping = (int)UChSystem.chrono_system.GetNumBodiesSleeping();
+                int numBodiesFixed = (int)UChSystem.chrono_system.GetNumBodiesFixed();
+
+                // If change, rebuild geometry
+                if (numBodies != prevNumBodies ||
+                    numBodiesActive != prevNumBodiesActive ||
+                    numBodiesSleeping != prevNumBodiesSleeping ||
+                    numBodiesFixed != prevNumBodiesFixed)
+                {
+                    // Rebuild shape data and buffers
+                    RebuildSceneData();
+
+                    // Update stored counters
+                    prevNumBodies = numBodies;
+                    prevNumBodiesActive = numBodiesActive;
+                    prevNumBodiesSleeping = numBodiesSleeping;
+                    prevNumBodiesFixed = numBodiesFixed;
+                    geometryDirty = false;
+                }
+            }
+        }
+        else
+        {
+            // No lazy refresh - always rebuild every frame 
+            RebuildSceneData();
         }
 
-        // 2) Update body transforms (pos + rot)
+        // Update body transforms (pos + rot)
         UpdateBodyData();
 
-        // 3) Dispatch the compute shader
-        int groups = Mathf.CeilToInt(allVertices.Count / 256.0f);
+        // Dispatch the compute shader - use ceiling division without Mathf
+        int groups = (allVertices.Count + 255) / 256;
         transformShader.Dispatch(kernelHandle, groups, 1, 1);
     }
 
-    /// <summary>
     /// Rebuilds the entire set of shape data and reinitializes buffers.
     /// Called if we detect that the Chrono system changed.
-    /// </summary>
     private void RebuildSceneData()
     {
         // Refresh the pointer to bodies (in case new bodies were added)
@@ -278,9 +349,7 @@ public class CollisionMeshAllBodies : MonoBehaviour
         InitializeComputeBuffers();
     }
 
-    /// <summary>
-    /// Updates the bodyData buffer each frame.
-    /// </summary>
+    /// Updates the bodyData buffer each frame
     private void UpdateBodyData()
     {
         bodyDataCPU.Clear();
@@ -292,23 +361,68 @@ public class CollisionMeshAllBodies : MonoBehaviour
 
             BodyData bd = new BodyData();
             bd.pos = bPos;
-            bd.rot = bRot;  // Optionally .normalized
+            bd.rot = bRot;
             bodyDataCPU.Add(bd);
         }
         bodyDataBuffer.SetData(bodyDataCPU);
     }
 
+    /// Forces a rebuild of collision geometry
+   public void ForceGeometryRebuild()
+    {
+        if (!buffersSet) return;
+        
+        allBodies = UChSystem.chrono_system.GetBodies();
+        BuildShapeData();
+        InitializeComputeBuffers();
+        
+        prevNumBodies = (int)UChSystem.chrono_system.GetNumBodies();
+        prevNumBodiesActive = (int)UChSystem.chrono_system.GetNumBodiesActive();
+        prevNumBodiesSleeping = (int)UChSystem.chrono_system.GetNumBodiesSleeping();
+        prevNumBodiesFixed = (int)UChSystem.chrono_system.GetNumBodiesFixed();
+        geometryDirty = false;
+    }
+
     // --------------------------------------------------------
-    // Render
+    // URP Multi-Camera Rendering Update
+    // --------------------------------------------------------
+    void OnRenderCallback(ScriptableRenderContext context, Camera camera)
+    {
+        // Bail out if not ready or disabled
+        if (!buffersSet || !isActiveAndEnabled)
+            return;
+
+        // Skip if no vertices to draw
+        if (transformedVertexBuffer == null || transformedVertexBuffer.count == 0)
+            return;
+
+        // Update material properties per-camera
+        lineMaterial.SetColor("_Color", lineColor);
+        lineMaterial.SetFloat("_MaxDistance", maxDistance);
+        lineMaterial.SetBuffer("vertexPositions", transformedVertexBuffer);
+
+        // Draw procedural lines using command buffer for URP
+        CommandBuffer cmd = CommandBufferPool.Get("CollisionMeshLines");
+        cmd.DrawProcedural(Matrix4x4.identity, lineMaterial, 0, MeshTopology.Lines, transformedVertexBuffer.count);
+        context.ExecuteCommandBuffer(cmd);
+        CommandBufferPool.Release(cmd);
+    }
+
+    // --------------------------------------------------------
+    // Used for Scene View
     // --------------------------------------------------------
     void OnRenderObject()
     {
-        if (!buffersSet)
+        if (!buffersSet || !isActiveAndEnabled)
             return;
 
-        lineMaterial.SetPass(0);
+        // Update material properties
+        lineMaterial.SetColor("_Color", lineColor);
+        lineMaterial.SetFloat("_MaxDistance", maxDistance);
         lineMaterial.SetBuffer("vertexPositions", transformedVertexBuffer);
-        Graphics.DrawProceduralNow(MeshTopology.Lines, transformedVertexBuffer.count, 1);
+        
+        lineMaterial.SetPass(0);
+        Graphics.DrawProceduralNow(MeshTopology.Lines, transformedVertexBuffer.count);
     }
 
     // --------------------------------------------------------
@@ -329,7 +443,7 @@ public class CollisionMeshAllBodies : MonoBehaviour
     }
 
     // ---------------------------------------------------------
-    // HELPER: Convert ChFramed => position + quaternion
+    // HELPER: Convert ChFramed to position + quaternion
     // ---------------------------------------------------------
     private void ConvertFrameToPositionRotation(ChFramed frame, out Vector3 pos, out Quaternion rot)
     {
@@ -339,9 +453,9 @@ public class CollisionMeshAllBodies : MonoBehaviour
     }
 
     // ---------------------------------------------------------
-    //  Shape-building helper methods
+    //  Shape-building helpers - this is a bit crude and doesn't
+    // handle all cases
     // ---------------------------------------------------------
-
     private void AddBoxLines(ChCollisionShape colShape, int shapeIndex)
     {
         var chronoBox = chrono.CastToChCollisionShapeBox(colShape);
@@ -453,8 +567,8 @@ public class CollisionMeshAllBodies : MonoBehaviour
     {
         var chronoHull = chrono.CastToChCollisionShapeConvexHull(colShape);
         vector_ChVector3d hullPoints = chronoHull.GetPoints();
-        // For demonstration, we add each point as lines, but
-        // you might want actual edges if available.
+        // Add each point as lines, but only gives the general idea of the shape,
+        // not the makeup of the mesh
         foreach (var point in hullPoints)
         {
             Vector3 v = Utils.FromChronoFlip(point);
@@ -463,9 +577,7 @@ public class CollisionMeshAllBodies : MonoBehaviour
         }
     }
 
-    // --------------------------------------------------------
-    // Utilities
-    // --------------------------------------------------------
+    // Just a quick helper for line segments
     private void AddLine(Vector3 start, Vector3 end, int shapeIndex)
     {
         allVertices.Add(start);
@@ -475,9 +587,7 @@ public class CollisionMeshAllBodies : MonoBehaviour
         shapeIndexPerVertex.Add(shapeIndex);
     }
 
-    /// <summary>
     /// Spherical coordinate helper for wireframe spheres
-    /// </summary>
     private Vector3 SphereCoord(float r, float phi, float theta)
     {
         float sinPhi = Mathf.Sin(phi);

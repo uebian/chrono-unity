@@ -13,7 +13,7 @@
 //
 // A shader explicitly for the rendering of the collision shapes from Chrono.
 // Includes a distance limit, to cull any vertices over a certain distance
-// from the camera.
+// from the camera. Updated for URP multi-camera support
 //
 // =============================================================================
 Shader "Custom/DrawCollisionShape"
@@ -22,23 +22,32 @@ Shader "Custom/DrawCollisionShape"
     {
         _Color("Color", Color) = (0,1,1,1)
         _MaxDistance("Max Distance", Float) = 25.0
-
     }
     SubShader
     {
-        Tags { "RenderType"="Opaque" }
+        Tags { "RenderType"="Transparent" "Queue"="Transparent" "RenderPipeline"="UniversalRenderPipeline" }
+        
         Pass
         {
+            Name "CollisionLines"
+            Tags { "LightMode" = "UniversalForward" }
+            
             Blend SrcAlpha OneMinusSrcAlpha
             ZWrite On
+            ZTest LEqual
             Cull Off
-            CGPROGRAM
+
+            HLSLPROGRAM
+            #pragma target 3.5
             #pragma vertex vert
             #pragma fragment frag
-            #include "UnityCG.cginc"
+            
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
-            fixed4 _Color;
-            float _MaxDistance;
+            CBUFFER_START(UnityPerMaterial)
+                float4 _Color;
+                float _MaxDistance;
+            CBUFFER_END
 
             struct appdata
             {
@@ -47,9 +56,9 @@ Shader "Custom/DrawCollisionShape"
 
             struct v2f
             {
-                float4 pos : SV_POSITION;
+                float4 positionCS : SV_POSITION;
                 float4 color : COLOR;
-                float distance : TEXCOORD2;
+                float distance : TEXCOORD0;
             };
 
             StructuredBuffer<float3> vertexPositions;
@@ -58,20 +67,26 @@ Shader "Custom/DrawCollisionShape"
             {
                 v2f o;
                 uint index = v.vertexID;
-                float3 position = vertexPositions[index];
-                o.pos = UnityObjectToClipPos(float4(position, 1.0));
-                o.distance = length(_WorldSpaceCameraPos - position); // Calculate distance from camera to vertex
+                float3 positionWS = vertexPositions[index];
+                
+                // Transform world space to clip space using URP helpers
+                o.positionCS = TransformWorldToHClip(positionWS);
+                
+                // Calculate distance from camera to vertex in world space
+                o.distance = length(GetCameraPositionWS() - positionWS);
                 o.color = _Color;
+                
                 return o;
             }
 
-            fixed4 frag(v2f i) : SV_Target
+            float4 frag(v2f i) : SV_Target
             {
-                float alpha = i.distance < _MaxDistance ? 1.0 : 0.0; // Apply distance limit
-                return float4(i.color.rgb, alpha); // Draw the vertex color
+                // Apply distance-based fade
+                float alpha = i.distance < _MaxDistance ? _Color.a : 0.0;
+                return float4(i.color.rgb, alpha);
             }
-            ENDCG
+            ENDHLSL
         }
     }
-    FallBack "Diffuse"
+    FallBack Off
 }

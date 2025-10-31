@@ -46,7 +46,7 @@ public abstract class UChVehicle : MonoBehaviour, IAdvance
     void Start()
     {
         // Register with the Chrono system (for Advance).
-        UChSystem system = (UChSystem)FindObjectOfType(typeof(UChSystem));
+        UChSystem system = UnityEngine.Object.FindFirstObjectByType<UChSystem>();
         system.Register(gameObject.name, this);
 
         OnStart(); // Call the vehicle's onstart.

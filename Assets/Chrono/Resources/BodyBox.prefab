@@ -60,10 +60,13 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 9d470daf63d68204f9e4357127df7d81, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -125,8 +128,8 @@ MonoBehaviour:
   automaticMass: 1
   density: 1000
   COM: {x: 0, y: 0, z: 0}
-  mass: 1
-  inertiaMoments: {x: 1, y: 1, z: 1}
+  mass: 1000
+  inertiaMoments: {x: 166.66667, y: 166.66667, z: 166.66667}
   inertiaProducts: {x: 0, y: 0, z: 0}
   linearVelocity: {x: 0, y: 0, z: 0}
   angularVelocity: {x: 0, y: 0, z: 0}

@@ -12,14 +12,19 @@
 struct ShapeInfo
 {
     float3 shapePos;
+    int _pad0;           // Padding for 16-byte alignment
     float4 shapeRot;
     int bodyIndex;
+    int _pad1;
+    int _pad2;
+    int _pad3;
 };
 
-// Body data: position + rotation
+// Body data: position + rotation (32 bytes aligned)
 struct BodyData
 {
     float3 pos;
+    int _pad0;           // Padding for 16-byte alignment
     float4 rot;
 };
 
@@ -46,13 +51,14 @@ cbuffer GlobalParams : register(b0)
 // -------------------------------------------------
 float3 RotateByQuaternion(float3 v, float4 q)
 {
-    // Extract xyz, w
+    // grab quaternion rotation
     float3 qxyz = q.xyz;
     float qw = q.w;
-
-    float3 t = 2.0f * cross(qxyz, v);
-    float3 vOut = v + (qw * t) + cross(qxyz, t);
-    return vOut;
+    
+    // u = 2 * (q.xyz x v)
+    float3 u = 2.0f * cross(qxyz, v);
+    // v + qw * u + (q.xyz x u)
+    return v + qw * u + cross(qxyz, u);
 }
 
 [numthreads(256, 1, 1)]

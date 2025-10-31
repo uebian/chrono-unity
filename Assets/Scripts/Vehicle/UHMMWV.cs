@@ -80,7 +80,7 @@ public class UHMMWV : UChVehicle
         hmmwv = new HMMWV_Full(UChSystem.chrono_system);
 
         hmmwv.SetChassisFixed(chassisFixed);
-        hmmwv.SetChassisCollisionType(CollisionType.NONE); // note: the current hmmwv hull-mesh has issues with rigid tyres - need to updateit
+        hmmwv.SetChassisCollisionType(CollisionType.NONE); // note: the current hmmwv hull-mesh has issues with rigid tyres - need to update it
 
         hmmwv.SetDriveType(drivelineModel);
         hmmwv.SetTireType((TireModelType)tireModel);
@@ -108,6 +108,9 @@ public class UHMMWV : UChVehicle
         hmmwv.SetInitWheelAngVel(omega);
 
         hmmwv.Initialize();
+
+        // wheel collision
+        hmmwv.GetVehicle().SetWheelCollide(true);
 
         // Get the vehicle components 
         foreach (Transform child in transform)
