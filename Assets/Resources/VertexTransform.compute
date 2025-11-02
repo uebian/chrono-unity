@@ -4,41 +4,85 @@
 // Copyright (c) 2024 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be found
-// in the LICENSE file at the top level of the distribution.
-//
-// =============================================================================
 // Authors: Josh Diyn
 // =============================================================================
-//
-// Compute shader for the purpose of transforming vertices passed to it about a
-// transformation matrix. Used for Chrono vehicle collision shape processing
-//
-// =============================================================================
+
 #pragma kernel CSMain
 
-struct VertexData
+struct ShapeInfo
 {
-    float3 position;
+    float3 shapePos;
+    int _pad0;           // Padding for 16-byte alignment
+    float4 shapeRot;
+    int bodyIndex;
+    int _pad1;
+    int _pad2;
+    int _pad3;
 };
 
-StructuredBuffer<VertexData> vertices; // Input buffer of vertices
-RWStructuredBuffer<float3> transformedVertices; // Output buffer for transformed vertices
-
-cbuffer MatrixBuffer : register(b0)
+// Body data: position + rotation (32 bytes aligned)
+struct BodyData
 {
-    float4x4 transformationMatrix;
-    uint vertexCount; // Number of vertices
+    float3 pos;
+    int _pad0;           // Padding for 16-byte alignment
+    float4 rot;
 };
+
+// Buffers
+StructuredBuffer<float3> vertices;
+StructuredBuffer<int> vertexShapeIndices;
+StructuredBuffer<ShapeInfo> shapeInfos;
+StructuredBuffer<BodyData> bodyData;
+
+// Output
+RWStructuredBuffer<float3> transformedVertices;
+
+// Constants
+cbuffer GlobalParams : register(b0)
+{
+    int vertexCount;
+    int shapeCount;
+    int bodyCount;
+}
+
+// -------------------------------------------------
+// Helper: rotate vector v by quaternion q
+// q = (x, y, z, w)
+// -------------------------------------------------
+float3 RotateByQuaternion(float3 v, float4 q)
+{
+    // grab quaternion rotation
+    float3 qxyz = q.xyz;
+    float qw = q.w;
+    
+    // u = 2 * (q.xyz x v)
+    float3 u = 2.0f * cross(qxyz, v);
+    // v + qw * u + (q.xyz x u)
+    return v + qw * u + cross(qxyz, u);
+}
 
 [numthreads(256, 1, 1)]
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
-    uint index = id.x;
-    if (index < vertexCount) // use the variable from the compute script
-    {
-        VertexData vertex = vertices[index];
-        float3 transformedPosition = mul(transformationMatrix, float4(vertex.position, 1.0)).xyz;
-        transformedVertices[index] = transformedPosition;
-    }
+    int i = id.x;
+    if (i >= vertexCount)
+        return;
+
+    int shapeIdx = vertexShapeIndices[i];
+    if (shapeIdx < 0 || shapeIdx >= shapeCount)
+        return;
+
+    ShapeInfo sInfo = shapeInfos[shapeIdx];
+    if (sInfo.bodyIndex < 0 || sInfo.bodyIndex >= bodyCount)
+        return;
+
+    BodyData bd = bodyData[sInfo.bodyIndex];
+
+    // local vertex position
+    float3 localPos = vertices[i];
+    // transform by shape local rotation + position
+    float3 shapeP = RotateByQuaternion(localPos, sInfo.shapeRot) + sInfo.shapePos;
+    // transform by the body's rotation + position
+    float3 worldPos = RotateByQuaternion(shapeP, bd.rot) + bd.pos;
+    transformedVertices[i] = worldPos;
 }

@@ -10,6 +10,11 @@ ChronoUnity brings together the Chrono high-fidelity and high-performance physic
 ![ChronoUnity](Images/ChronoUnity_snapshot.png)
 
 
+JSON vehicle building. Access through the Menu using _Tools->Chrono->Vehicle Builder_
+
+![ChronoVehicleBuilder](Images/chronoVehicleBuilder_snapshot.png)
+
+
 ## Key Features
   The included demos highlight a number of the following key features:
 - **Chrono Core module:** Utilise Project Chrono's capabilities for NSC and SMC contact systems. Multiple solvers and approaches supported for accurate physics simulation within the Unity environment.
@@ -88,6 +93,7 @@ To build the necessary Chrono modules yourself, you need CMake, Swig 4.x, and an
 ## Using ChronoUnity
 1. Launch UnityHub, select "Add a project from disk" and select the ChronoUnity directory (`chrono-unity`).
 2. Launch the project **chrono-unity** from within UnityHub, wait for compilation, then open one of the physics or vehicle demo scenes.
+3. Access to the JSON vehicle generator is through the Unity menu (assuming no console errors halting this). Goto _Tools->Chrono->Vehicle Builder_
 
 ## Documentation
 

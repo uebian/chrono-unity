@@ -51,7 +51,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   chassisFixed: 0
-  tireModel: 7
+  tireModel: 8
   tireCollisionType: 0
   tireStepSize: 0.001
   brakeType: 0

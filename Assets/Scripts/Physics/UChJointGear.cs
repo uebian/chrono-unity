@@ -50,14 +50,14 @@ public class UChJointGear : MonoBehaviour
     void Start()
     {
         gear = new ChLinkLockGear();
-        ChFramed csys = new ChFramed(Utils.ToChrono(transform.position), Utils.ToChrono(transform.rotation));
+        ChFramed csys = new ChFramed(Utils.ToChronoFlip(transform.position), Utils.ToChronoFlip(transform.rotation));
         gear.Initialize(body1.GetChBody(), body2.GetChBody(), csys);
 
         //// TODO: This needs validating to ensure correct results are given
         var rot1 = Quaternion.LookRotation(shaft1Direction.normalized);
-        gear.SetFrameShaft1(new ChFramed(Utils.ToChrono(shaft1Origin), Utils.ToChrono(rot1)));
+        gear.SetFrameShaft1(new ChFramed(Utils.ToChronoFlip(shaft1Origin), Utils.ToChronoFlip(rot1)));
         var rot2 = Quaternion.LookRotation(shaft2Direction.normalized);
-        gear.SetFrameShaft2(new ChFramed(Utils.ToChrono(shaft2Origin), Utils.ToChrono(rot2)));
+        gear.SetFrameShaft2(new ChFramed(Utils.ToChronoFlip(shaft2Origin), Utils.ToChronoFlip(rot2)));
 
         gear.SetTransmissionRatio(transmissionRatio);
         gear.SetEpicyclic(epicyclic);
@@ -69,6 +69,6 @@ public class UChJointGear : MonoBehaviour
     void Update()
     {
         ChVector3d pos = gear.GetMarker2().GetAbsCoordsys().pos;
-        transform.position = Utils.FromChrono(pos);
+        transform.position = Utils.FromChronoFlip(pos);
     }
 }

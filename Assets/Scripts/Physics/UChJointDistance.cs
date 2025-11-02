@@ -40,7 +40,7 @@ public class UChJointDistance : MonoBehaviour
             return;
         }
         joint = new ChLinkDistance();
-        joint.Initialize(body1.GetChBody(), body2.GetChBody(), useRelativePos, Utils.ToChrono(position1), Utils.ToChrono(position2)); // default setting is an auto distance and bilateral constraint
+        joint.Initialize(body1.GetChBody(), body2.GetChBody(), useRelativePos, Utils.ToChronoFlip(position1), Utils.ToChronoFlip(position2)); // default setting is an auto distance and bilateral constraint
 
         UChSystem.chrono_system.AddLink(joint);
         joint.Setup(); // recompute
@@ -57,8 +57,8 @@ public class UChJointDistance : MonoBehaviour
 
     void Update()
     {
-        var p1 = Utils.FromChrono(joint.GetEndPoint1Abs());
-        var p2 = Utils.FromChrono(joint.GetEndPoint2Abs());
+        var p1 = Utils.FromChronoFlip(joint.GetEndPoint1Abs());
+        var p2 = Utils.FromChronoFlip(joint.GetEndPoint2Abs());
 
         // Update line in game view
         lineObject.SetPosition(0, p1);

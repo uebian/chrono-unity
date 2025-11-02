@@ -47,12 +47,12 @@ public class UCHLinkMateFix : MonoBehaviour
         Quaternion desiredRotationBody2RelativeToBody1 = Quaternion.Inverse(currentRotationBody1) * currentRotationBody2;
         // Adjustment is essentially the inverse of the desired relative rotation, so that body2 is not forced to align axes with body1
         Quaternion adjustment = Quaternion.Inverse(desiredRotationBody2RelativeToBody1);
-        ChQuaterniond chronoAdjustment = Utils.ToChrono(adjustment);
+        ChQuaterniond chronoAdjustment = Utils.ToChronoFlip(adjustment);
 
         // Now locations
         // Calculate the relative position vectors directly, without adding the body's global position
-        ChVector3d relativeVector1 = Utils.ToChrono(positionOnBody1);
-        ChVector3d relativeVector2 = Utils.ToChrono(positionOnBody2);
+        ChVector3d relativeVector1 = Utils.ToChronoFlip(positionOnBody1);
+        ChVector3d relativeVector2 = Utils.ToChronoFlip(positionOnBody2);
 
         // Create the frames for the points based solely on their relative positions.
         // set the rotation as QUNIT. Mate will rotate the body to align the axes. Adjust to suit

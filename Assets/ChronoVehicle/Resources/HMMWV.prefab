@@ -52,7 +52,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   chassisFixed: 0
   drivelineModel: 2
-  tireModel: 7
+  tireModel: 8
   tireCollisionType: 0
   tireStepSize: 0.001
   brakeType: 0
@@ -175,6 +175,11 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 3512339656688598983}
     m_Modifications:
+    - target: {fileID: 799523641798442454, guid: 9af382ff8c29cd942b77bf08122d8690,
+        type: 3}
+      propertyPath: 'm_Materials.Array.data[4]'
+      value: 
+      objectReference: {fileID: 2100000, guid: e3ec83cee44d17c4391df9e5b4f24d5b, type: 2}
     - target: {fileID: 6155985038196735334, guid: 9af382ff8c29cd942b77bf08122d8690,
         type: 3}
       propertyPath: m_RootOrder

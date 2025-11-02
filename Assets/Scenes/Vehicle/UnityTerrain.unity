@@ -13,7 +13,7 @@ OcclusionCullingSettings:
 --- !u!104 &2
 RenderSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 9
+  serializedVersion: 10
   m_Fog: 0
   m_FogColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   m_FogMode: 3
@@ -42,8 +42,8 @@ RenderSettings:
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 12
-  m_GIWorkflowMode: 1
+  serializedVersion: 13
+  m_BakeOnSceneLoad: 1
   m_GISettings:
     serializedVersion: 2
     m_BounceScale: 1
@@ -66,9 +66,6 @@ LightmapSettings:
     m_LightmapParameters: {fileID: 0}
     m_LightmapsBakeMode: 1
     m_TextureCompression: 1
-    m_FinalGather: 0
-    m_FinalGatherFiltering: 1
-    m_FinalGatherRayCount: 256
     m_ReflectionCompression: 2
     m_MixedBakeMode: 2
     m_BakeBackend: 1
@@ -96,7 +93,8 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 0}
+  m_LightingDataAsset: {fileID: 112000000, guid: eb364bff7576883499a2ac1524ed50d1,
+    type: 2}
   m_LightingSettings: {fileID: 4890085278179872738, guid: 8cf8c8056e51a844f845123e4d1ba77b,
     type: 2}
 --- !u!196 &4
@@ -133,6 +131,7 @@ GameObject:
   m_Component:
   - component: {fileID: 15175138}
   - component: {fileID: 15175137}
+  - component: {fileID: 15175139}
   m_Layer: 0
   m_Name: Directional Light (1)
   m_TagString: Untagged
@@ -148,9 +147,8 @@ Light:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 15175136}
   m_Enabled: 1
-  serializedVersion: 10
+  serializedVersion: 11
   m_Type: 1
-  m_Shape: 0
   m_Color: {r: 1, g: 0.95686275, b: 0.8392157, a: 1}
   m_Intensity: 0.5
   m_Range: 10
@@ -200,8 +198,12 @@ Light:
   m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
+  m_ForceVisible: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
+  m_LightUnit: 1
+  m_LuxAtDistance: 1
+  m_EnableSpotReflector: 1
 --- !u!4 &15175138
 Transform:
   m_ObjectHideFlags: 0
@@ -217,6 +219,29 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 149.247, y: -14.406006, z: 21.087997}
+--- !u!114 &15175139
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 15175136}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 474bcb49853aa07438625e644c072ee6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Version: 3
+  m_UsePipelineSettings: 1
+  m_AdditionalLightsShadowResolutionTier: 2
+  m_LightLayerMask: 1
+  m_RenderingLayers: 1
+  m_CustomShadowLayers: 0
+  m_ShadowLayerMask: 1
+  m_ShadowRenderingLayers: 1
+  m_LightCookieSize: {x: 1, y: 1}
+  m_LightCookieOffset: {x: 0, y: 0}
+  m_SoftShadowQuality: 0
 --- !u!1001 &336726062
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -376,7 +401,7 @@ TerrainCollider:
     m_Bits: 0
   m_LayerOverridePriority: 0
   m_ProvidesContacts: 0
-  m_Enabled: 0
+  m_Enabled: 1
   serializedVersion: 2
   m_TerrainData: {fileID: 15600000, guid: ddabebde60d320547bf103cdbace4159, type: 2}
   m_EnableTreeColliders: 1
@@ -544,6 +569,7 @@ GameObject:
   m_Component:
   - component: {fileID: 884885004}
   - component: {fileID: 884885003}
+  - component: {fileID: 884885005}
   m_Layer: 0
   m_Name: Directional Light
   m_TagString: Untagged
@@ -559,9 +585,8 @@ Light:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 884885002}
   m_Enabled: 1
-  serializedVersion: 10
+  serializedVersion: 11
   m_Type: 1
-  m_Shape: 0
   m_Color: {r: 1, g: 0.95686275, b: 0.8392157, a: 1}
   m_Intensity: 0.5
   m_Range: 10
@@ -611,8 +636,12 @@ Light:
   m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
+  m_ForceVisible: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
+  m_LightUnit: 1
+  m_LuxAtDistance: 1
+  m_EnableSpotReflector: 1
 --- !u!4 &884885004
 Transform:
   m_ObjectHideFlags: 0
@@ -628,6 +657,29 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 71.139, y: -96.174, z: -72.663}
+--- !u!114 &884885005
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 884885002}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 474bcb49853aa07438625e644c072ee6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Version: 3
+  m_UsePipelineSettings: 1
+  m_AdditionalLightsShadowResolutionTier: 2
+  m_LightLayerMask: 1
+  m_RenderingLayers: 1
+  m_CustomShadowLayers: 0
+  m_ShadowLayerMask: 1
+  m_ShadowRenderingLayers: 1
+  m_LightCookieSize: {x: 1, y: 1}
+  m_LightCookieOffset: {x: 0, y: 0}
+  m_SoftShadowQuality: 0
 --- !u!1 &1221148240 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 1020630170656191179, guid: 19e318937e9294a49b7c04b026b297ca,
@@ -647,6 +699,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   transformShader: {fileID: 7200000, guid: 4a284a85f76b7174c9fa13c49c8cfe4e, type: 3}
+  drawShader: {fileID: 0}
+  lineColor: {r: 0, g: 1, b: 1, a: 1}
+  maxDistance: 25
+  useLazyRefresh: 1
 --- !u!1001 &1455962137
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -840,7 +896,7 @@ PrefabInstance:
     - target: {fileID: 4721149938721439471, guid: a3fbde8c8e9b5a845a69c6f3b9adaab3,
         type: 3}
       propertyPath: tireModel
-      value: 7
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 4721149938721439471, guid: a3fbde8c8e9b5a845a69c6f3b9adaab3,
         type: 3}
@@ -1098,7 +1154,11 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 7194074963564705869, guid: 434044898e2439248a0db16bad6f0518,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2054644129}
   m_SourcePrefab: {fileID: 100100000, guid: 434044898e2439248a0db16bad6f0518, type: 3}
 --- !u!1001 &1888182091
 PrefabInstance:
@@ -1173,6 +1233,29 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 3174675141e2b12459a5be9cac987b8b, type: 3}
+--- !u!1 &2054644128 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7194074963564705869, guid: 434044898e2439248a0db16bad6f0518,
+    type: 3}
+  m_PrefabInstance: {fileID: 1731607036}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &2054644129
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2054644128}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5e51ef961a70a014ba630d6144c3fdc7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  transformShader: {fileID: 7200000, guid: 4a284a85f76b7174c9fa13c49c8cfe4e, type: 3}
+  drawShader: {fileID: 0}
+  lineColor: {r: 0, g: 1, b: 1, a: 1}
+  maxDistance: 25
+  useLazyRefresh: 1
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

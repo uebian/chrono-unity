@@ -25,7 +25,7 @@ public class UChJointUniversal : MonoBehaviour
     void Start()
     {
         joint = new ChLinkUniversal();
-        ChFramed frame = new ChFramed(Utils.ToChrono(transform.position), Utils.ToChrono(transform.rotation));
+        ChFramed frame = new ChFramed(Utils.ToChronoFlip(transform.position), Utils.ToChronoFlip(transform.rotation));
         joint.Initialize(body1.GetChBody(), body2.GetChBody(), frame);
 
         UChSystem.chrono_system.AddLink(joint);
@@ -43,7 +43,7 @@ public class UChJointUniversal : MonoBehaviour
         ChMatrix33d R = new ChMatrix33d();
         R.SetFromDirectionAxes(x, y, z);
 
-        transform.position = Utils.FromChrono(frame1.GetPos());
-        transform.rotation = Utils.FromChrono(R.GetQuaternion());
+        transform.position = Utils.FromChronoFlip(frame1.GetPos());
+        transform.rotation = Utils.FromChronoFlip(R.GetQuaternion());
     }
 }

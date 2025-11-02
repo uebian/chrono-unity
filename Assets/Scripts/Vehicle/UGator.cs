@@ -11,6 +11,7 @@
 // Authors: Radu Serban, Josh Diyn
 // =============================================================================
 
+using System;
 using UnityEngine;
 
 public class UGator : UChVehicle
@@ -76,15 +77,26 @@ public class UGator : UChVehicle
         gator = new Gator(UChSystem.chrono_system);
 
         gator.SetChassisFixed(chassisFixed);
-        gator.SetTireType((TireModelType)tireModel);
+        // Gator doesn't have a tired fallback if null, so ensure check first.
+        if (Enum.IsDefined(typeof(UTireModelType), tireModel))
+        {
+            gator.SetTireType((TireModelType)tireModel);
+        }
+        else
+        {
+            // fallback
+            gator.SetTireType(TireModelType.TMEASY);
+            Debug.Log("Invalid tire model type specified. Fallback to TMEasy");
+        }
+
         gator.SetTireCollisionType(tireCollisionType);
         gator.SetTireStepSize(tireStepSize);
         gator.SetAerodynamicDrag(0.5, 5.0, 1.2);
         gator.SetBrakeType((BrakeType)brakeType);
         gator.EnableBrakeLocking(brakeLocking);
 
-        // Enable this if user wants to make use of collisions
-        gator.SetChassisCollisionType(CollisionType.PRIMITIVES); 
+        // Alter this if user wants to make use of collisions
+        gator.SetChassisCollisionType(CollisionType.NONE); 
 
         ////Vector3 pos = transform.position;
         ////Quaternion quat = transform.rotation;

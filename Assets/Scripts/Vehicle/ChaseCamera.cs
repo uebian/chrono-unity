@@ -66,11 +66,11 @@ public class ChaseCamera : MonoBehaviour, IAdvance
     public void Start()
     {
         // Register with the Chrono system (for Advance).
-        UChSystem system = (UChSystem)FindObjectOfType(typeof(UChSystem));
+        UChSystem system = UnityEngine.Object.FindFirstObjectByType<UChSystem>();
         system.Register(gameObject.name, this);
 
         // Initialize list of vehicles currently in the scene and attach to first one if any
-        vehicles = FindObjectsOfType<UChVehicle>();
+        vehicles = UnityEngine.Object.FindObjectsByType<UChVehicle>(FindObjectsSortMode.None);
         if (vehicles.Length > 0)
         {
             vehicle = vehicles[target_index];
@@ -83,7 +83,7 @@ public class ChaseCamera : MonoBehaviour, IAdvance
         if (Input.GetKeyDown(KeyCode.PageUp) || Input.GetKeyDown(KeyCode.PageDown))
         {
             // Refresh list of vehicles
-            vehicles = FindObjectsOfType<UChVehicle>();
+            vehicles = UnityEngine.Object.FindObjectsByType<UChVehicle>(FindObjectsSortMode.None);
             int numVehicles = vehicles.Length;
             if (numVehicles == 0)
             {

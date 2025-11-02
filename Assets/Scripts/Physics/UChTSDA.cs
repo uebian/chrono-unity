@@ -52,7 +52,7 @@ public class UChTSDA : MonoBehaviour
 
         spring = new ChLinkTSDA();
         spring.Initialize(body1.GetChBody(), body2.GetChBody(), 
-                          useRelativePos, Utils.ToChrono(position1), Utils.ToChrono(position2));
+                          useRelativePos, Utils.ToChronoFlip(position1), Utils.ToChronoFlip(position2));
         spring.SetSpringCoefficient(springCoefficient);
         spring.SetDampingCoefficient(dampingCoefficient);
         spring.SetActuatorForce(actuatorForce);
@@ -73,8 +73,8 @@ public class UChTSDA : MonoBehaviour
 
     void Update()
     {
-        var p1 = Utils.FromChrono(spring.GetPoint1Abs());
-        var p2 = Utils.FromChrono(spring.GetPoint2Abs());
+        var p1 = Utils.FromChronoFlip(spring.GetPoint1Abs());
+        var p2 = Utils.FromChronoFlip(spring.GetPoint2Abs());
 
         DrawHelicalSpring(p1, p2);
     }

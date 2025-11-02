@@ -40,10 +40,10 @@ public class UChBodyEditor : Editor
         if (body.automaticMass)
         {
             body.density = EditorGUILayout.FloatField("Density", body.density);
+            body.CalculateMassProperties(); // moved this to auto check, since not automatic should use the user-entered field
         }
         else
         {
-            body.CalculateMassProperties();
             body.mass = EditorGUILayout.DoubleField("Mass", body.mass);
             body.COM = EditorGUILayout.Vector3Field("Center of Mass", body.COM);
             body.inertiaMoments = EditorGUILayout.Vector3Field("Moments of Inertia", body.inertiaMoments);

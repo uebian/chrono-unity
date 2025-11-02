@@ -21,7 +21,7 @@ public class UGenericVehicle : UChVehicle
     // This field holds the full path to the selected configuration, including the file name and extension.
     [SerializeField]
     [HideInInspector]
-    private string selectedConfiguration;
+    public string selectedConfiguration;
     public bool chassisFixed;
     public ChTire.CollisionType tireCollisionType;
     public bool brakeLocking;
@@ -51,7 +51,7 @@ public class UGenericVehicle : UChVehicle
     protected override void OnStart()
     {
         // Ensure the correct path is set to load the vehicle parameters
-        string vehicleOfChoice = (chrono_vehicle.GetDataFile("generic/vehicle/" + Path.GetFileName(selectedConfiguration)));
+        string vehicleOfChoice = (chrono_vehicle.GetVehicleDataFile("generic/vehicle/" + Path.GetFileName(selectedConfiguration)));
         Debug.Log("file location at: " + vehicleOfChoice);
 
         // Make use of the json drop down selection
@@ -72,8 +72,8 @@ public class UGenericVehicle : UChVehicle
         vehicle.EnableBrakeLocking(brakeLocking);
 
         //// Create and initialize the powertrain system
-        ChEngine engine = chrono_vehicle.ReadEngineJSON(chrono_vehicle.GetDataFile("generic/powertrain/EngineSimple.json"));
-        ChTransmission transmission = chrono_vehicle.ReadTransmissionJSON(chrono_vehicle.GetDataFile("generic/powertrain/AutomaticTransmissionShafts.json"));
+        ChEngine engine = chrono_vehicle.ReadEngineJSON(chrono_vehicle.GetVehicleDataFile("generic/powertrain/EngineSimple.json"));
+        ChTransmission transmission = chrono_vehicle.ReadTransmissionJSON(chrono_vehicle.GetVehicleDataFile("generic/powertrain/AutomaticTransmissionShafts.json"));
         ChPowertrainAssembly powertrain = new ChPowertrainAssembly(engine, transmission);
         vehicle.InitializePowertrain(powertrain);
 
@@ -82,7 +82,7 @@ public class UGenericVehicle : UChVehicle
         {
             foreach (ChWheel wheel in axle.GetWheels())
             {
-                ChTire tire = chrono_vehicle.ReadTireJSON(chrono_vehicle.GetDataFile("generic/tire/TMeasyTire.json")); // Fiala Tire model causes NaN issues with hard braking. Check implementaiton.
+                ChTire tire = chrono_vehicle.ReadTireJSON(chrono_vehicle.GetVehicleDataFile("generic/tire/TMeasyTire.json")); // Fiala Tire model causes NaN issues with hard braking. Check implementaiton.
                 vehicle.InitializeTire(tire, wheel, VisualizationType.NONE, tireCollisionType);
             }
         }

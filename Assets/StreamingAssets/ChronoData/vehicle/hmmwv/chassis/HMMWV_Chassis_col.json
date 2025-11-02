@@ -1,0 +1,57 @@
+{
+    "Name": "HMMWV chassis with collision",
+    "Type": "Chassis",
+    "Template": "RigidChassis",
+
+    "Components": [
+        {
+            "Centroidal Frame": {
+                "Location": [ 0.056, 0, 0.213 ],
+                "Orientation": [ 1, 0, 0, 0 ]
+            },
+            "Mass": 2086.52,
+            "Moments of Inertia": [ 1078.52, 2955.66, 3570.20 ],
+            "Products of Inertia": [ 0, 0, 0 ],
+            "Void": false
+        }
+    ],
+
+    "Driver Position": {
+        "Location": [ 0.87, 0.7, 1.05 ],
+        "Orientation": [ 1, 0, 0, 0 ]
+    },
+
+    "Rear Connector Location": [ -2.5, 0, -0.25 ],
+
+    "Visualization": {
+        "Mesh": "hmmwv/hmmwv_chassis.obj"
+    },
+
+    "Contact": {
+        "Materials": [
+            {
+                "Coefficient of Friction": 0.8,
+                "Coefficient of Restitution": 0.1,
+                "Properties": {
+                    "Young Modulus": 5.0e5,
+                    "Poisson Ratio": 0.3
+                },
+                "Coefficients": {
+                    "Normal Stiffness": 1.0e6,
+                    "Normal Damping": 1.0e3,
+                    "Tangential Stiffness": 5.0e5,
+                    "Tangential Damping": 5.0e2
+                }
+            }
+        ],
+        "Shapes": [
+            {
+                "Type": "MESH",
+                "Material Index": 0,
+                "Filename": "hmmwv/hmmwv_chassis_col.obj",
+                "Location": [ 0, 0, 0 ],
+                "Contact Radius": 0.002
+            }
+        ]
+    }
+}

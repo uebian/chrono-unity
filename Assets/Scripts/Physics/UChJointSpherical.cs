@@ -25,7 +25,7 @@ public class UChJointSpherical : MonoBehaviour
     void Start()
     {
         joint = new ChLinkLockSpherical();
-        ChFramed csys = new ChFramed(Utils.ToChrono(transform.position), Utils.ToChrono(transform.rotation));
+        ChFramed csys = new ChFramed(Utils.ToChronoFlip(transform.position), Utils.ToChronoFlip(transform.rotation));
         joint.Initialize(body1.GetChBody(), body2.GetChBody(), csys);
 
         UChSystem.chrono_system.AddLink(joint);
@@ -34,7 +34,7 @@ public class UChJointSpherical : MonoBehaviour
     void Update()
     {
         var csys = joint.GetMarker1().GetAbsCoordsys();
-        transform.position = Utils.FromChrono(csys.pos);
-        transform.rotation = Utils.FromChrono(csys.rot);
+        transform.position = Utils.FromChronoFlip(csys.pos);
+        transform.rotation = Utils.FromChronoFlip(csys.rot);
     }
 }

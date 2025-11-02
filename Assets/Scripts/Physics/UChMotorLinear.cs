@@ -40,7 +40,7 @@ public class UChMotorLinear : UChMotor
     void Start()
     {
         motor = Create(type);
-        ChFramed frame = new ChFramed(Utils.ToChrono(transform.position), Utils.ToChrono(transform.rotation));
+        ChFramed frame = new ChFramed(Utils.ToChronoFlip(transform.position), Utils.ToChronoFlip(transform.rotation));
         motor.Initialize(body1.GetChBody(), body2.GetChBody(), frame);
 
         // Get a handle to the associated function component and set the motor's function
@@ -53,7 +53,7 @@ public class UChMotorLinear : UChMotor
     void Update()
     {
         var csys = motor.GetFrame1Abs();
-        transform.position = Utils.FromChrono(csys.GetPos());
-        transform.rotation = Utils.FromChrono(csys.GetRot());
+        transform.position = Utils.FromChronoFlip(csys.GetPos());
+        transform.rotation = Utils.FromChronoFlip(csys.GetRot());
     }
 }
