@@ -51,7 +51,7 @@ public class ULRV : UChVehicle
     protected override void OnStart()
     {
         // Ensure the correct path is set to load the vehicle parameters
-        string vehicleOfChoice = (chrono_vehicle.GetDataFile("LRV/Polaris.json"));
+        string vehicleOfChoice = (chrono_vehicle.GetVehicleDataFile("LRV/Polaris.json"));
         Debug.Log("LRV file location at: " + vehicleOfChoice);
 
         // Make use of the json drop down selection
@@ -74,8 +74,8 @@ public class ULRV : UChVehicle
         vehicle.EnableBrakeLocking(brakeLocking);
 
         //// Create and initialize the powertrain system
-        ChEngine engine = chrono_vehicle.ReadEngineJSON(chrono_vehicle.GetDataFile("LRV/Polaris_EngineSimpleMap.json"));
-        ChTransmission transmission = chrono_vehicle.ReadTransmissionJSON(chrono_vehicle.GetDataFile("LRV/Polaris_AutomaticTransmissionSimpleMap.json"));
+        ChEngine engine = chrono_vehicle.ReadEngineJSON(chrono_vehicle.GetVehicleDataFile("LRV/Polaris_EngineSimpleMap.json"));
+        ChTransmission transmission = chrono_vehicle.ReadTransmissionJSON(chrono_vehicle.GetVehicleDataFile("LRV/Polaris_AutomaticTransmissionSimpleMap.json"));
         ChPowertrainAssembly powertrain = new ChPowertrainAssembly(engine, transmission);
         vehicle.InitializePowertrain(powertrain);
 
@@ -84,7 +84,7 @@ public class ULRV : UChVehicle
         {
             foreach (ChWheel wheel in axle.GetWheels())
             {
-                ChTire tire = chrono_vehicle.ReadTireJSON(chrono_vehicle.GetDataFile("LRV/Polaris_RigidTire.json")); // Fiala Tire model causes NaN issues with hard braking. Check implementaiton.
+                ChTire tire = chrono_vehicle.ReadTireJSON(chrono_vehicle.GetVehicleDataFile("LRV/Polaris_RigidTire.json")); // Fiala Tire model causes NaN issues with hard braking. Check implementaiton.
                 vehicle.InitializeTire(tire, wheel, VisualizationType.NONE, tireCollisionType);
             }
         }
