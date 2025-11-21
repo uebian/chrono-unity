@@ -7,7 +7,7 @@
   // Tire design (REQUIRED)
 
   "Design": {
-    "Unloaded Radius [m]": 0.3175,
+    "Unloaded Radius [m]": 0.35875,
     "Mass [kg]": 9.3,
     "Inertia [kg.m2]": [ 0.258, 0.416, 0.258 ],
     "Width [m]": 0.3048,

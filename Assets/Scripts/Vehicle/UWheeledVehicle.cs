@@ -20,6 +20,7 @@ using UnityEngine;
 using System.IO;
 using System;
 using System.Collections.Generic; // for List<>
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 
@@ -34,6 +35,13 @@ public class WheelGameobjects
 
 public class UWheeledVehicle : UChVehicle
 {
+    public enum TireAssignmentMode
+    {
+        SingleFile,
+        PerAxleList,
+        PerWheelList
+    }
+
     [Header("JSON for the vehicle")]
     public string topLevelVehicleJSON;  // e.g. "hmmwv/vehicle/HMMWV_Vehicle_4WD.json"
 
@@ -42,18 +50,56 @@ public class UWheeledVehicle : UChVehicle
     public string transJSON;
 
     [Header("Tire JSON")]
-    [Tooltip("If true, uses the single 'tireJSON' for all wheels. Otherwise, fill perAxleTireSpec for each wheel.")]
-    public bool useSingleTireFile = true;
+    [Tooltip("Select how tire JSON files are assigned: single file for all wheels, per axle, or per wheel.")]
+    public TireAssignmentMode tireAssignmentMode = TireAssignmentMode.SingleFile;
     public string tireJSON = "hmmwv/tire/HMMWV_TMeasyTire.json";
 
     /// <summary>
-    /// If useSingleTireFile == false, you can store multiple tire JSON references here,
-    /// in the order that wheels appear in Chrono:
-    ///    Axle 0 => (LEFT, RIGHT),
-    ///    Axle 1 => (LEFT, RIGHT), etc.
+    /// Backwards compatibility shim for editor tooling that still toggles a single-file flag.
+    /// Maps to <see cref="tireAssignmentMode"/> internally.
+    /// </summary>
+    public bool useSingleTireFile
+    {
+        get => tireAssignmentMode == TireAssignmentMode.SingleFile;
+        set
+        {
+            if (value)
+            {
+                tireAssignmentMode = TireAssignmentMode.SingleFile;
+            }
+            else if (tireAssignmentMode == TireAssignmentMode.SingleFile)
+            {
+                tireAssignmentMode = TireAssignmentMode.PerAxleList;
+            }
+        }
+    }
+
+    public bool usePerWheelTireOverrides
+    {
+        get => tireAssignmentMode == TireAssignmentMode.PerWheelList;
+        set
+        {
+            if (value)
+            {
+                tireAssignmentMode = TireAssignmentMode.PerWheelList;
+            }
+            else if (tireAssignmentMode == TireAssignmentMode.PerWheelList)
+            {
+                tireAssignmentMode = TireAssignmentMode.PerAxleList;
+            }
+        }
+    }
+
+    /// <summary>
+    /// When using per-axle or per-wheel assignment modes, populate entries accordingly.
+    /// For per-wheel mode, order items Axle0(L,R), Axle1(L,R), etc. Leave entries empty
+    /// to fall back to the default tireJSON.
     /// </summary>
     [Header("If not single, multiple tire JSONs (one per wheel)")]
     public List<string> perAxleTireSpec = new List<string>();
+
+    [SerializeField, HideInInspector]
+    private string tireOverrideStateHash = string.Empty;
 
     [Header("Initial Conditions")]
     public bool chassisFixed = false;
@@ -84,6 +130,34 @@ public class UWheeledVehicle : UChVehicle
         {
             Debug.LogWarning($"{name}: JSON load failed, so no vehicle was built.");
         }
+        else
+        {
+            // Vehicle successfully built; no verbose diagnostics required here anymore.
+        }
+    }
+
+    // Validate JSON file syntax
+    private bool ValidateJSON(string filePath, string description)
+    {
+        try
+        {
+            string jsonText = File.ReadAllText(filePath);
+            JToken.Parse(jsonText);
+            return true;
+        }
+        catch (JsonReaderException jex)
+        {
+            Debug.LogError($"{name}: {description} has invalid JSON syntax at {filePath}\n" +
+                          $"Error: {jex.Message}\n" +
+                          $"Line {jex.LineNumber}, Position {jex.LinePosition}");
+            return false;
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"{name}: Failed to read {description} at {filePath}\n" +
+                          $"Error: {ex.Message}");
+            return false;
+        }
     }
 
     // Build from JSON
@@ -103,6 +177,12 @@ public class UWheeledVehicle : UChVehicle
             return false;
         }
 
+        // Validate vehicle JSON before attempting to load
+        if (!ValidateJSON(vehicleJson, "Vehicle JSON"))
+        {
+            return false;
+        }
+
         // sanity check that it's Type=Vehicle
         string text = File.ReadAllText(vehicleJson);
         if (!text.Contains("\"Type\": \"Vehicle\""))
@@ -116,8 +196,10 @@ public class UWheeledVehicle : UChVehicle
             // Instantiate the Chrono WheeledVehicle using the JSON
             UChJSONVehicle = new WheeledVehicle(UChSystem.chrono_system, vehicleJson);
 
+            Vector3 initPos = transform.position;
+
             // initialise
-            var csys = new ChCoordsysd(Utils.ToChronoFlip(transform.position), Utils.ToChronoFlip(transform.rotation));
+            var csys = new ChCoordsysd(Utils.ToChronoFlip(initPos), Utils.ToChronoFlip(transform.rotation));
             UChJSONVehicle.Initialize(csys, initForwardVel);
 
             // set chassis fixed / brake locking
@@ -135,10 +217,18 @@ public class UWheeledVehicle : UChVehicle
 
                 if (File.Exists(engPath) && File.Exists(transPath))
                 {
-                    ChEngine engine = chrono_vehicle.ReadEngineJSON(engPath);
-                    ChTransmission trans = chrono_vehicle.ReadTransmissionJSON(transPath);
-                    ChPowertrainAssembly powertrain = new ChPowertrainAssembly(engine, trans);
-                    UChJSONVehicle.InitializePowertrain(powertrain);
+                    // Validate engine and transmission JSONs
+                    if (!ValidateJSON(engPath, "Engine JSON") || !ValidateJSON(transPath, "Transmission JSON"))
+                    {
+                        Debug.LogWarning($"{name}: Invalid engine or transmission JSON. Skipping powertrain.");
+                    }
+                    else
+                    {
+                        ChEngine engine = chrono_vehicle.ReadEngineJSON(engPath);
+                        ChTransmission trans = chrono_vehicle.ReadTransmissionJSON(transPath);
+                        ChPowertrainAssembly powertrain = new ChPowertrainAssembly(engine, trans);
+                        UChJSONVehicle.InitializePowertrain(powertrain);
+                    }
                 }
                 else
                 {
@@ -149,42 +239,59 @@ public class UWheeledVehicle : UChVehicle
             // create & initialise tires
             var axleList = UChJSONVehicle.GetAxles();
             uint numAxles = UChJSONVehicle.GetNumberAxles();
+            int totalWheelCount = 0;
+            for (int axleIdx = 0; axleIdx < numAxles; axleIdx++)
+            {
+                totalWheelCount += axleList[axleIdx].GetWheels().Count;
+            }
+
+            bool overridesCurrent = IsTireOverrideStateCurrent((int)numAxles, totalWheelCount);
+            bool runtimeForceReset = !overridesCurrent;
+
+            EnsureTireOverrideEntries((int)numAxles, totalWheelCount, forceReset: runtimeForceReset, defaultEntry: tireJSON);
+
+            if (runtimeForceReset && tireAssignmentMode != TireAssignmentMode.SingleFile)
+            {
+                Debug.LogWarning(
+                    $"{name}: Tire overrides were out of sync with the current vehicle layout ({topLevelVehicleJSON}). " +
+                    "Resetting to the default tire JSON before building.");
+            }
+
+            UpdateTireOverrideStateHash((int)numAxles, totalWheelCount);
+
+            int globalWheelIndex = 0;
 
             for (int axleIndex = 0; axleIndex < numAxles; axleIndex++)
             {
                 ChAxle axle = axleList[axleIndex];
-                string tirePath = "";
-
-                if (useSingleTireFile)
-                {
-                    tirePath = chrono_vehicle.GetVehicleDataFile(tireJSON);
-                }
-                else
-                {
-                    if (axleIndex < perAxleTireSpec.Count)
-                    {
-                        string userTireFile = perAxleTireSpec[axleIndex];
-                        if (!string.IsNullOrEmpty(userTireFile))
-                        {
-                            tirePath = chrono_vehicle.GetVehicleDataFile(userTireFile);
-                        }
-                    }
-                }
-
-                if (string.IsNullOrEmpty(tirePath) || !File.Exists(tirePath))
-                {
-                    Debug.LogWarning($"{name}: Tire JSON for axle #{axleIndex} not found. Skipping.");
-                    continue;
-                }
-
-                // for each wheel in this axle, we apply the same ChTire instance
                 var wheels = axle.GetWheels();
+
                 for (int w = 0; w < wheels.Count; w++)
                 {
+                    string tirePath = ResolveTirePath(axleIndex, w, globalWheelIndex);
+                    globalWheelIndex++;
+
+                    if (string.IsNullOrEmpty(tirePath) || !File.Exists(tirePath))
+                    {
+                        Debug.LogWarning($"{name}: Tire JSON for axle #{axleIndex}, wheel #{w} not found. Skipping.");
+                        continue;
+                    }
+
+                    // Validate tire JSON per wheel for clarity
+                    if (!ValidateJSON(tirePath, $"Tire JSON (Axle {axleIndex}, Wheel {w})"))
+                    {
+                        Debug.LogWarning($"{name}: Invalid tire JSON for axle #{axleIndex}, wheel #{w}. Skipping.");
+                        continue;
+                    }
+
+                    Debug.Log($"{name}: Axle {axleIndex}, Wheel {w}: Loading tire from {tirePath}");
+
                     ChWheel wheel = wheels[w];
                     ChTire tire = chrono_vehicle.ReadTireJSON(tirePath);
                     tire.SetStepsize(tireStepSize);
                     UChJSONVehicle.InitializeTire(tire, wheel, VisualizationType.NONE, tireCollisionType);
+
+                    Debug.Log($"{name}: Axle {axleIndex}, Wheel {w}: Tire initialized with collision type {tireCollisionType}");
                 }
             }
 
@@ -232,11 +339,20 @@ public class UWheeledVehicle : UChVehicle
     // (and unity interaction if desired)
     private void UpdateFromJsonVehicle(double step)
     {
-        // move the chassis
+        // Get vehicle position and rotation (same as gator.GetVehicle().GetPos())
         var pos = UChJSONVehicle.GetPos();
         var rot = UChJSONVehicle.GetRot();
+        
         transform.position = Utils.FromChronoFlip(pos);
         transform.rotation = Utils.FromChronoFlip(rot);
+        
+        // Also update the chassis visual mesh if it exists as a child GameObject
+        Transform chassisTransform = transform.Find("Chassis");
+        if (chassisTransform != null)
+        {
+            chassisTransform.position = Utils.FromChronoFlip(pos);
+            chassisTransform.rotation = Utils.FromChronoFlip(rot);
+        }
 
         // for each axle update the sub-list in axleData[axleIndex].visualGameobjects
         var axleList = UChJSONVehicle.GetAxles();
@@ -276,6 +392,147 @@ public class UWheeledVehicle : UChVehicle
         // get chrono to update
         UChJSONVehicle.Synchronize(UChSystem.chrono_system.GetChTime(), inputs, chTerrain);
         UChJSONVehicle.Advance(step);
+    }
+
+    private string ResolveTirePath(int axleIndex, int wheelIndex, int globalWheelIndex)
+    {
+        string defaultTirePath = chrono_vehicle.GetVehicleDataFile(tireJSON);
+        switch (tireAssignmentMode)
+        {
+            case TireAssignmentMode.SingleFile:
+                if (string.IsNullOrEmpty(defaultTirePath))
+                {
+                    Debug.LogWarning($"{name}: Tire assignment mode is SingleFile but no default tire JSON is configured.");
+                }
+                return defaultTirePath;
+            case TireAssignmentMode.PerAxleList:
+                return ResolveTireOverrideFromList(axleIndex, $"axle #{axleIndex}", defaultTirePath);
+            case TireAssignmentMode.PerWheelList:
+                return ResolveTireOverrideFromList(globalWheelIndex, $"wheel #{globalWheelIndex}", defaultTirePath);
+            default:
+                return defaultTirePath;
+        }
+    }
+
+    private string ResolveTireOverrideFromList(int listIndex, string label, string defaultTirePath)
+    {
+        string tirePath = string.Empty;
+
+        if (listIndex < perAxleTireSpec.Count)
+        {
+            string userTireFile = perAxleTireSpec[listIndex];
+            if (!string.IsNullOrEmpty(userTireFile))
+            {
+                tirePath = chrono_vehicle.GetVehicleDataFile(userTireFile);
+            }
+        }
+
+        if (string.IsNullOrEmpty(tirePath))
+        {
+            if (!string.IsNullOrEmpty(defaultTirePath))
+            {
+                Debug.LogWarning($"{name}: Tire JSON entry missing for {label}. Falling back to {tireJSON}.");
+                tirePath = defaultTirePath;
+            }
+            else
+            {
+                Debug.LogWarning($"{name}: Tire JSON entry missing for {label} and no default tire JSON is configured.");
+            }
+        }
+
+        return tirePath;
+    }
+
+    public void RefreshTireOverridesFromInspector(bool forceReset)
+    {
+        int axleCount = axleData?.Count ?? 0;
+        int wheelCount = 0;
+        if (axleData != null)
+        {
+            foreach (var axle in axleData)
+            {
+                if (axle?.visualGameobjects != null)
+                {
+                    wheelCount += axle.visualGameobjects.Count;
+                }
+            }
+        }
+
+        EnsureTireOverrideEntries(axleCount, wheelCount, forceReset, tireJSON);
+        UpdateTireOverrideStateHash(axleCount, wheelCount);
+    }
+
+    private void UpdateTireOverrideStateHash(int axleCount, int wheelCount)
+    {
+        tireOverrideStateHash = BuildTireOverrideStateHash(axleCount, wheelCount);
+    }
+
+    private bool IsTireOverrideStateCurrent(int axleCount, int wheelCount)
+    {
+        if (axleCount < 0 || wheelCount < 0)
+        {
+            return false;
+        }
+
+        string expectedHash = BuildTireOverrideStateHash(axleCount, wheelCount);
+        return string.Equals(tireOverrideStateHash, expectedHash, StringComparison.Ordinal);
+    }
+
+    private string BuildTireOverrideStateHash(int axleCount, int wheelCount)
+    {
+        return string.Join("|",
+            topLevelVehicleJSON ?? string.Empty,
+            tireAssignmentMode.ToString(),
+            axleCount,
+            wheelCount,
+            perAxleTireSpec?.Count ?? 0
+        );
+    }
+
+    private void EnsureTireOverrideEntries(int expectedAxleCount, int expectedWheelCount, bool forceReset, string defaultEntry)
+    {
+        if (tireAssignmentMode == TireAssignmentMode.SingleFile)
+        {
+            if (forceReset)
+            {
+                perAxleTireSpec.Clear();
+            }
+            return;
+        }
+
+        int expectedEntries = tireAssignmentMode == TireAssignmentMode.PerAxleList ? expectedAxleCount : expectedWheelCount;
+        expectedEntries = Mathf.Max(0, expectedEntries);
+
+        if (expectedEntries == 0)
+        {
+            perAxleTireSpec.Clear();
+            return;
+        }
+
+        if (string.IsNullOrEmpty(defaultEntry))
+        {
+            defaultEntry = string.Empty;
+        }
+
+        if (forceReset)
+        {
+            perAxleTireSpec.Clear();
+            for (int i = 0; i < expectedEntries; i++)
+            {
+                perAxleTireSpec.Add(defaultEntry);
+            }
+            return;
+        }
+
+        if (perAxleTireSpec.Count > expectedEntries)
+        {
+            perAxleTireSpec.RemoveRange(expectedEntries, perAxleTireSpec.Count - expectedEntries);
+        }
+
+        while (perAxleTireSpec.Count < expectedEntries)
+        {
+            perAxleTireSpec.Add(defaultEntry);
+        }
     }
 
 
