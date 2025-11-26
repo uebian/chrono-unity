@@ -269,7 +269,7 @@ public class UChSystem : MonoBehaviour
         switch (integratorType)
         {
             case IntegratorType.EULER_IMPLICIT_LINEARIZED:
-                {
+                {                    
                     var integrator = new ChTimestepperEulerImplicitLinearized(chrono_system);
                     chrono_system.SetTimestepper(integrator);
                     break;
@@ -282,11 +282,17 @@ public class UChSystem : MonoBehaviour
                 }
             case IntegratorType.EULER_IMPLICIT:
                 {
-                    var integrator = new ChTimestepperEulerImplicit(chrono_system);
-                    integrator.SetMaxIters(integratorMaxIters);
-                    integrator.SetRelTolerance(integratorRelTol);
-                    integrator.SetAbsTolerances(integratorAbsTolS, integratorAbsTolL);
-                    chrono_system.SetTimestepper(integrator);
+                    // Use SetTimestepperType pattern to work around SWIG shared_ptr issue
+                    // Currently only an issue for ChTimestepperEulerImplicit not allowing direct construction!
+                    // The other implicits are fine (above)
+                    chrono_system.SetTimestepperType(ChTimestepper.Type.EULER_IMPLICIT);
+                    var integrator = chrono_system.GetTimestepper() as ChTimestepperEulerImplicit;
+                    if (integrator != null)
+                    {
+                        integrator.SetMaxIters(integratorMaxIters);
+                        integrator.SetRelTolerance(integratorRelTol);
+                        integrator.SetAbsTolerances(integratorAbsTolS, integratorAbsTolL);
+                    }
                     break;
                 }
             case IntegratorType.HHT:

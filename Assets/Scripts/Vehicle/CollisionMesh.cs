@@ -84,7 +84,6 @@ public class CollisionMeshAllBodies : MonoBehaviour
     private int prevNumBodiesFixed = 0;
     private int framesSinceRebuild = 0;
     private const int REBUILD_CHECK_INTERVAL = 30;
-    private bool geometryDirty = true;
 
     void Start()
     {
@@ -137,8 +136,6 @@ public class CollisionMeshAllBodies : MonoBehaviour
         prevNumBodiesActive = (int)UChSystem.chrono_system.GetNumBodiesActive();
         prevNumBodiesSleeping = (int)UChSystem.chrono_system.GetNumBodiesSleeping();
         prevNumBodiesFixed = (int)UChSystem.chrono_system.GetNumBodiesFixed();
-        
-        geometryDirty = false;
     }
     
     void OnEnable()
@@ -317,7 +314,6 @@ public class CollisionMeshAllBodies : MonoBehaviour
                     prevNumBodiesActive = numBodiesActive;
                     prevNumBodiesSleeping = numBodiesSleeping;
                     prevNumBodiesFixed = numBodiesFixed;
-                    geometryDirty = false;
                 }
             }
         }
@@ -380,7 +376,6 @@ public class CollisionMeshAllBodies : MonoBehaviour
         prevNumBodiesActive = (int)UChSystem.chrono_system.GetNumBodiesActive();
         prevNumBodiesSleeping = (int)UChSystem.chrono_system.GetNumBodiesSleeping();
         prevNumBodiesFixed = (int)UChSystem.chrono_system.GetNumBodiesFixed();
-        geometryDirty = false;
     }
 
     // --------------------------------------------------------
