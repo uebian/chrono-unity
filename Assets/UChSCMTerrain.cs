@@ -69,7 +69,7 @@ public class UChSCMTerrain : MonoBehaviour
         ChQuaterniond rotateQ = new ChQuaterniond(chrono.QuatFromAngleX(-90 * chrono.CH_DEG_TO_RAD));
 
         chronoTerrain = new SCMTerrain(UChSystem.chrono_system);
-        chronoTerrain.SetPlane(new ChCoordsysd(new ChVector3d(0,0,0),rotateQ));
+        chronoTerrain.SetReferenceFrame(new ChCoordsysd(new ChVector3d(0,0,0),rotateQ));
 
         // Set soil parameters for SCM terrain
         chronoTerrain.SetSoilParameters(8.14e4,    // Bekker Kphi
@@ -157,7 +157,7 @@ public class UChSCMTerrain : MonoBehaviour
         chronoTerrain.Advance(UChSystem.chrono_system.GetStep());
 
         ChVector2i test;
-        ChSCMModifiedNodes modifiedNodes = chronoTerrain.GetModifiedNodes(false);
+        ChSCMTerrainNodeLevelList modifiedNodes = chronoTerrain.GetModifiedNodes(false);
 
         TerrainData tData = sourceTerrain.terrainData;
         int hmRes = tData.heightmapResolution;
