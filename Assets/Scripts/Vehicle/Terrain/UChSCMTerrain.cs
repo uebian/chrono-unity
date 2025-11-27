@@ -188,7 +188,7 @@ public class UChSCMTerrain : MonoBehaviour
             int chunkIndexX = (int)(xIndex / (chunkRes - 1));
             int chunkIndexZ = (int)(zIndex / (chunkRes - 1));
 
-            Debug.Log(chunkRes);
+            // Debug.Log(chunkRes);
             Vector2Int chunkKey = new Vector2Int(chunkIndexX, chunkIndexZ);
 
             // Debug.Log(chunkIndexX);
@@ -296,6 +296,7 @@ public class UChSCMTerrain : MonoBehaviour
             {
                 // 1) Create the new TerrainData
                 TerrainData chunkData = new TerrainData();
+                chunkData.detailPrototypes = originalData.detailPrototypes;
     
                 // Heightmap resolution for the chunk
                 chunkData.heightmapResolution = newHeightmapResolution;

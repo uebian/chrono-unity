@@ -53,7 +53,6 @@ public abstract class UChVehicle : MonoBehaviour, IAdvance
         OnStart(); // Call the vehicle's onstart.
         
         // Find terrain in system and set to chTerrain
-        // chTerrain = UChRigidTerrainManager.chronoRigidTerrain;
         chTerrain = terrainManager.chronoTerrain;
     }
         

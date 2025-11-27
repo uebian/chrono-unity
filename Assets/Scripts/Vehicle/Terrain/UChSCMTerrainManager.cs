@@ -11,12 +11,7 @@
 // Authors: Josh Diyn
 // =============================================================================
 
-using System.Collections;
-using System.Collections.Generic;
-using System.Net.NetworkInformation;
 using UnityEngine;
-using System;
-using UnityEngine.UIElements;
 
 // Add Terrain prior to the UChVehicle (which is at -900)
 [DefaultExecutionOrder(-950)]
@@ -30,11 +25,3 @@ public class UChSCMTerrainManager : UChTerrainManager
 
 }
 
-public abstract class UChTerrainManager : MonoBehaviour,IUChTerrainManager {
-    public ChTerrain chronoTerrain {get; set;}
-}
-
-public interface IUChTerrainManager {
-    ChTerrain chronoTerrain {get; set;}
-
-}

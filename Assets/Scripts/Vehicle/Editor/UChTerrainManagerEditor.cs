@@ -16,15 +16,15 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 
-[CustomEditor(typeof(UChRigidTerrainManager))]
-public class UChRigidTerrainManagerEditor : Editor
+[CustomEditor(typeof(UChTerrainManager))]
+public class UChTerrainManagerEditor : Editor
 {
     public override void OnInspectorGUI()
     {
         // Draw the default inspector
         DrawDefaultInspector();
 
-        UChRigidTerrainManager manager = (UChRigidTerrainManager)target;
+        UChTerrainManager manager = (UChTerrainManager)target;
     }
 
     // Navigate all descendants of a GameObject to apply the material
