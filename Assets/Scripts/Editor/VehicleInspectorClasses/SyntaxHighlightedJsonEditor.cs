@@ -20,6 +20,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using ChronoVehicleBuilder;
 using System;
+using System.Linq;
 
 namespace VehicleBuilder.Editor
 {
@@ -98,8 +99,10 @@ namespace VehicleBuilder.Editor
                 return;
             
             lineNumberStyle = new GUIStyle(EditorStyles.label);
-            lineNumberStyle.font = Font.CreateDynamicFontFromOSFont("Consolas", 12);
-            if (lineNumberStyle.font == null)
+            string[] osFontNames = Font.GetOSInstalledFontNames();
+            if (osFontNames.Contains("Consolas"))
+                lineNumberStyle.font = Font.CreateDynamicFontFromOSFont("Consolas", 12);
+            else if (osFontNames.Contains("Courier New"))
                 lineNumberStyle.font = Font.CreateDynamicFontFromOSFont("Courier New", 12);
             lineNumberStyle.normal.textColor = new Color(0.5f, 0.5f, 0.5f);
             lineNumberStyle.alignment = TextAnchor.UpperRight;
