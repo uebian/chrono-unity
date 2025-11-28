@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &2832868228892091904
+--- !u!1 &1907966299948439621
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,8 +8,8 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 4587956380416658010}
-  - component: {fileID: 4519391906234351951}
+  - component: {fileID: 180594362528658463}
+  - component: {fileID: 257322446134345482}
   m_Layer: 0
   m_Name: ChronoRigidTerrain
   m_TagString: Untagged
@@ -17,42 +17,67 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &4587956380416658010
+--- !u!4 &180594362528658463
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2832868228892091904}
+  m_GameObject: {fileID: 1907966299948439621}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1747257884750831427}
+  - {fileID: 2672229220375027974}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &4519391906234351951
+--- !u!114 &257322446134345482
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2832868228892091904}
+  m_GameObject: {fileID: 1907966299948439621}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e59fce0d8991874438610f3ff08b2f66, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!1001 &4634701792190595330
+--- !u!1001 &9042083605549858631
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 4587956380416658010}
+    m_TransformParent: {fileID: 180594362528658463}
     m_Modifications:
+    - target: {fileID: 254651902666798864, guid: c0d011d631251dc4fb5a59165ab69e9f,
+        type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 79d82d50f7aced54c801cfab8f57c735, type: 2}
+    - target: {fileID: 4385878540495354996, guid: c0d011d631251dc4fb5a59165ab69e9f,
+        type: 3}
+      propertyPath: mat_info.mu
+      value: 0.7
+      objectReference: {fileID: 0}
+    - target: {fileID: 5773078224905366424, guid: c0d011d631251dc4fb5a59165ab69e9f,
+        type: 3}
+      propertyPath: numberOfTiles
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 6372106872344927809, guid: c0d011d631251dc4fb5a59165ab69e9f,
+        type: 3}
+      propertyPath: m_LocalScale.x
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 6372106872344927809, guid: c0d011d631251dc4fb5a59165ab69e9f,
+        type: 3}
+      propertyPath: m_LocalScale.z
+      value: 100
+      objectReference: {fileID: 0}
     - target: {fileID: 6372106872344927809, guid: c0d011d631251dc4fb5a59165ab69e9f,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -113,9 +138,9 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c0d011d631251dc4fb5a59165ab69e9f, type: 3}
---- !u!4 &1747257884750831427 stripped
+--- !u!4 &2672229220375027974 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6372106872344927809, guid: c0d011d631251dc4fb5a59165ab69e9f,
     type: 3}
-  m_PrefabInstance: {fileID: 4634701792190595330}
+  m_PrefabInstance: {fileID: 9042083605549858631}
   m_PrefabAsset: {fileID: 0}

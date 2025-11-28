@@ -47,12 +47,31 @@ public abstract class UChVehicle : MonoBehaviour, IAdvance
     {
         // Register with the Chrono system (for Advance).
         UChSystem system = UnityEngine.Object.FindFirstObjectByType<UChSystem>();
+        if (system == null)
+        {
+            Debug.LogError($"[{gameObject.name}] No UChSystem found in the scene. Add a UChSystem component to initialize the Chrono simulation.");
+            return;
+        }
         system.Register(gameObject.name, this);
 
         OnStart(); // Call the vehicle's onstart.
         
         // Find terrain in system and set to chTerrain
         chTerrain = UChRigidTerrainManager.chronoRigidTerrain;
+        
+        if (chTerrain == null)
+        {
+            // Check if a terrain manager exists but has no patches
+            var terrainManager = UnityEngine.Object.FindFirstObjectByType<UChRigidTerrainManager>();
+            if (terrainManager == null)
+            {
+                Debug.LogError($"[{gameObject.name}] No UChRigidTerrainManager found in the scene. Add a terrain manager with UChRigidTerrainPatch child objects.");
+            }
+            else
+            {
+                Debug.LogError($"[{gameObject.name}] UChRigidTerrainManager exists but terrain is not initialized. Ensure it has at least one UChRigidTerrainPatch child object.");
+            }
+        }
     }
         
     public void Advance(double step)

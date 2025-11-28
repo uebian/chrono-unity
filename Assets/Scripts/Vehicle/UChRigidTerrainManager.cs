@@ -26,6 +26,13 @@ public class UChRigidTerrainManager : MonoBehaviour
 
     void Start()
     {
+        // Verify the Chrono system exists
+        if (UChSystem.chrono_system == null)
+        {
+            Debug.LogError($"[{gameObject.name}] UChSystem.chrono_system is null. Ensure a UChSystem component exists and initializes before the terrain manager.");
+            return;
+        }
+        
         // Set the Terrain to the main system (which the vehicle/s are also a part of)
         chronoRigidTerrain = new RigidTerrain(UChSystem.chrono_system);
 
@@ -63,7 +70,10 @@ public class UChRigidTerrainManager : MonoBehaviour
         }
         */
 
-        if (patches == null) { Debug.Log("No patches added"); }
+        if (patches == null || patches.Length == 0)
+        {
+            Debug.LogWarning("No UChRigidTerrainPatch objects found. Add a terrain patch as a child of the terrain manager.");
+        }
         // Initialize the terrain
         chronoRigidTerrain.Initialize();
 
@@ -78,8 +88,17 @@ public class UChRigidTerrainManager : MonoBehaviour
 
     void FixedUpdate()
     {
+        if (chronoRigidTerrain == null) return;
+        
         chronoRigidTerrain.Synchronize(UChSystem.chrono_system.GetChTime());
         chronoRigidTerrain.Advance(UChSystem.chrono_system.GetStep());
+    }
+
+    void OnDisable()
+    {
+        // Reset the static reference when disabled (e.g., exiting play mode or scene change)
+        // so we dont get 'stuck' with a stale ref
+        chronoRigidTerrain = null;
     }
 
 }
