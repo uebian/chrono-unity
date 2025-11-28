@@ -62,17 +62,19 @@ public class UChSystem : MonoBehaviour
 
     // -----------------------------
     // Solver
-
     // Supported solver types
     public enum SolverType
     {
+        // Variational Inequality solvers - for DVI (hard contact) problems
         PSOR,
         BARZILAIBORWEIN,
         APGD,
-        SPARSE_LU,
-        SPARSE_QR,
-        GMRES,
-        MINRES
+        
+        // Direct/Iterative Linear System solvers
+        SPARSE_LU,          // Direct solver
+        SPARSE_QR,          // Direct solver, alternative to LU
+        GMRES,              // Iterative LS solver
+        MINRES              // Iterative LS solver, good for FEA
     }
     public SolverType solverType;
 
@@ -96,14 +98,18 @@ public class UChSystem : MonoBehaviour
 
     // -----------------------------
     // Integrator
+    // See: https://api.projectchrono.org/simulation_system.html
 
     // Supported integrator types
     public enum IntegratorType
     {
-        EULER_IMPLICIT_LINEARIZED,
-        EULER_IMPLICIT_PROJECTED,
-        EULER_IMPLICIT,
-        HHT
+        // All implicit Euler variants work with NSC + VI solvers (PSOR, APGD, BB)
+        EULER_IMPLICIT_LINEARIZED,  // Default, fast, first-order, no sub-iterations
+        EULER_IMPLICIT_PROJECTED,   // Better for low inter-penetration
+        EULER_IMPLICIT,             // Nonlinear implicit, Newton iterations - works with VI solvers for NSC
+        
+        // HHT requires SMC (cannot use with DVI/NSC contacts) and typically needs direct/LS solvers
+        HHT                         // Second-order, numerical damping, SMC only
     }
     public IntegratorType integratorType;
 
@@ -265,26 +271,47 @@ public class UChSystem : MonoBehaviour
                 }
         }
 
+        // Validate solver/integrator compatibility - the editor should prevent invalid combinations,
+        // but this is an additional safety check--------------------
+        // NSC- All implicit Euler variants (including EULER_IMPLICIT) work with VI solvers (PSOR, APGD, BB)
+        // SMC- HHT typically needs direct/LS solvers for the Newton iterations
+        bool isDirectSolver = (solverType == SolverType.SPARSE_LU || solverType == SolverType.SPARSE_QR || 
+                               solverType == SolverType.GMRES || solverType == SolverType.MINRES);
+        
+        // HHT with VI solver warning (HHT needs LS-style solver for Newton iterations in SMC)
+        if (integratorType == IntegratorType.HHT && !isDirectSolver)
+        {
+            Debug.LogWarning($"[UChSystem] HHT integrator typically requires a direct/iterative LS solver (SPARSE_LU, SPARSE_QR, GMRES, or MINRES). " +
+                           $"Current solver {solverType} may not converge properly.");
+        }
+        
+        // HHT with NSC error
+        if (integratorType == IntegratorType.HHT && contact_method == ChContactMethod.NSC)
+        {
+            Debug.LogError($"[UChSystem] HHT integrator cannot be used with NSC (DVI) contact method. " +
+                          $"Falling back to EULER_IMPLICIT_LINEARIZED.");
+            integratorType = IntegratorType.EULER_IMPLICIT_LINEARIZED;
+        }
+
         // Set integrator
+        // Using SetTimestepperType (C++ creates) + GetTimestepper with 'as' cast is faster than C# object creation
         switch (integratorType)
         {
             case IntegratorType.EULER_IMPLICIT_LINEARIZED:
-                {                    
-                    var integrator = new ChTimestepperEulerImplicitLinearized(chrono_system);
-                    chrono_system.SetTimestepper(integrator);
+                {
+                    chrono_system.SetTimestepperType(ChTimestepper.Type.EULER_IMPLICIT_LINEARIZED);
                     break;
                 }
             case IntegratorType.EULER_IMPLICIT_PROJECTED:
                 {
-                    var integrator = new ChTimestepperEulerImplicitProjected(chrono_system);
-                    chrono_system.SetTimestepper(integrator);
+                    chrono_system.SetTimestepperType(ChTimestepper.Type.EULER_IMPLICIT_PROJECTED);
                     break;
                 }
             case IntegratorType.EULER_IMPLICIT:
                 {
+                   
                     // Use SetTimestepperType pattern to work around SWIG shared_ptr issue
                     // Currently only an issue for ChTimestepperEulerImplicit not allowing direct construction!
-                    // The other implicits are fine (above)
                     chrono_system.SetTimestepperType(ChTimestepper.Type.EULER_IMPLICIT);
                     var integrator = chrono_system.GetTimestepper() as ChTimestepperEulerImplicit;
                     if (integrator != null)
@@ -297,12 +324,17 @@ public class UChSystem : MonoBehaviour
                 }
             case IntegratorType.HHT:
                 {
-                    var integrator = new ChTimestepperHHT(chrono_system);
-                    integrator.SetMaxIters(integratorMaxIters);
-                    integrator.SetRelTolerance(integratorRelTol);
-                    integrator.SetAbsTolerances(integratorAbsTolS, integratorAbsTolL);
-                    integrator.SetAlpha(hhtAlpha);
-                    chrono_system.SetTimestepper(integrator);
+                    // Second order accuracy with adjustable numerical damping
+                    // Cannot be used with NSC/DVI contacts - requires SMC (smooth contacts)
+                    chrono_system.SetTimestepperType(ChTimestepper.Type.HHT);
+                    var integrator = chrono_system.GetTimestepper() as ChTimestepperHHT;
+                    if (integrator != null)
+                    {
+                        integrator.SetMaxIters(integratorMaxIters);
+                        integrator.SetRelTolerance(integratorRelTol);
+                        integrator.SetAbsTolerances(integratorAbsTolS, integratorAbsTolL);
+                        integrator.SetAlpha(hhtAlpha);
+                    }
                     break;
                 }
         }

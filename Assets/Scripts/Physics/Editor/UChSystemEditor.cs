@@ -73,21 +73,45 @@ public class UChSystemEditor : Editor
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
 
         // Integrator options
+        // NSC (DVI): All implicit Euler variants work with VI solvers (PSOR, APGD, BB)
+        //            EULER_IMPLICIT assembles a complementarity problem each Newton iteration for the VI solver
+        //            HHT cannot be used with NSC/DVI contacts
+        // SMC: HHT requires direct/LS solvers (SPARSE_LU, SPARSE_QR, GMRES, MINRES)
 
         string[] integrator_options;
-        if (sys.contact_method == ChContactMethod.NSC)
-            integrator_options = new string[] { "EULER_IMPLICIT_LINEARIZED", "EULER_IMPLICIT_PROJECTED", "EULER_IMPLICIT" };
-        else
-            integrator_options = new string[] { "EULER_IMPLICIT_LINEARIZED", "EULER_IMPLICIT_PROJECTED", "EULER_IMPLICIT", "HHT" };
+        bool isDirectSolver = (sys.solverType == UChSystem.SolverType.SPARSE_LU || 
+                               sys.solverType == UChSystem.SolverType.SPARSE_QR ||
+                               sys.solverType == UChSystem.SolverType.GMRES || 
+                               sys.solverType == UChSystem.SolverType.MINRES);
 
-        sys.integratorType = (UChSystem.IntegratorType)EditorGUILayout.Popup("Solver Type", (int)sys.integratorType, integrator_options, EditorStyles.popup);
+        if (sys.contact_method == ChContactMethod.NSC)
+        {
+            // NSC: All implicit Euler variants work with VI solvers, but no HHT
+            integrator_options = new string[] { "EULER_IMPLICIT_LINEARIZED", "EULER_IMPLICIT_PROJECTED", "EULER_IMPLICIT" };
+        }
+        else
+        {
+            // SMC: All integrators available, HHT typically used with direct solvers
+            if (isDirectSolver)
+                integrator_options = new string[] { "EULER_IMPLICIT_LINEARIZED", "EULER_IMPLICIT_PROJECTED", "EULER_IMPLICIT", "HHT" };
+            else
+                integrator_options = new string[] { "EULER_IMPLICIT_LINEARIZED", "EULER_IMPLICIT_PROJECTED", "EULER_IMPLICIT" };
+        }
+
+        sys.integratorType = (UChSystem.IntegratorType)EditorGUILayout.Popup("Integrator Type", (int)sys.integratorType, integrator_options, EditorStyles.popup);
+        
+        // Clamp integrator type if current selection is not in available options
+        if ((int)sys.integratorType >= integrator_options.Length)
+        {
+            sys.integratorType = UChSystem.IntegratorType.EULER_IMPLICIT_LINEARIZED;
+        }
 
         if (sys.integratorType == UChSystem.IntegratorType.EULER_IMPLICIT || sys.integratorType == UChSystem.IntegratorType.HHT)
         {
             sys.integratorRelTol = EditorGUILayout.DoubleField("Rel. Tol.", sys.integratorRelTol);
             sys.integratorAbsTolS = EditorGUILayout.DoubleField("Abs. Tol. States", sys.integratorAbsTolS);
             sys.integratorAbsTolL = EditorGUILayout.DoubleField("Abs. Tol. Multipliers", sys.integratorAbsTolL);
-            sys.solverMaxIterations = EditorGUILayout.IntField("Max. N-R Iterations", sys.solverMaxIterations);
+            sys.integratorMaxIters = EditorGUILayout.IntField("Max. N-R Iterations", sys.integratorMaxIters);
         }
 
         if (sys.integratorType == UChSystem.IntegratorType.HHT)

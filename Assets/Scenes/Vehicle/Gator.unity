@@ -93,7 +93,7 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 112000000, guid: b51d8bb11ee4bbe47a28545d890fd10d,
+  m_LightingDataAsset: {fileID: 112000000, guid: 5cb86d9d877e7004381c8447eb278648,
     type: 2}
   m_LightingSettings: {fileID: 4890085278179872738, guid: 8cf8c8056e51a844f845123e4d1ba77b,
     type: 2}
@@ -1189,6 +1189,11 @@ PrefabInstance:
         type: 3}
       propertyPath: solverType
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7194074963564705906, guid: 434044898e2439248a0db16bad6f0518,
+        type: 3}
+      propertyPath: integratorType
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 7194074963564705906, guid: 434044898e2439248a0db16bad6f0518,
         type: 3}
