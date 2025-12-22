@@ -1,4 +1,4 @@
-﻿// =============================================================================
+﻿﻿// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2024 projectchrono.org
@@ -23,7 +23,6 @@ public abstract class UChVehicle : MonoBehaviour, IAdvance
 {
     protected DriverInputs inputs;
     public ChTerrain chTerrain;
-    public UChTerrainManager terrainManager;
     
     public UChVehicle()
     {
@@ -58,8 +57,7 @@ public abstract class UChVehicle : MonoBehaviour, IAdvance
         OnStart(); // Call the vehicle's onstart.
         
         // Find terrain in system and set to chTerrain
-        // chTerrain = terrainManager.chronoTerrain;
-        chTerrain = UChRigidTerrainManager.chronoRigidTerrain;
+        chTerrain = UChTerrainManager.chronoTerrain;
         
         if (chTerrain == null)
         {
