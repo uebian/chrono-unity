@@ -13,25 +13,25 @@
 
 using UnityEngine;
 
-// The same as UChVehicle (which is at -900)
-[DefaultExecutionOrder(-900)]
-public class UViper : MonoBehaviour
+// Add Handler after the SensorManager (which is at -800)
+[DefaultExecutionOrder(-750)]
+public class UChROSSegmentCamHandler : UChROSHandler
 {
-    private Viper viper;
-
-    void Start()
+    public double ROS_publish_rate = 15;
+    public string ROS_topic = "/segment/image_raw";
+    protected override void Start()
     {
+        ChSegmentationCamera chrono_camera_sensor = (ChSegmentationCamera) GetComponent<UChSegmentationCamera>().Sensor;
+        Handler = new ChROSSegmentCamHandler(ROS_publish_rate, chrono_camera_sensor, ROS_topic);
+        base.Start();
     }
 
     void Awake()
     {
     }
 
-    public Viper GetViper()
+    private void RefreshBodySourceFromParent()
     {
-        return viper;
     }
 
-
 }
-

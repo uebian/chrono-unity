@@ -38,6 +38,47 @@ public class UChSensor : MonoBehaviour
     {
     }
 
+    public static bool ParentHasSupportedBody(GameObject source)
+    {
+        return source.GetComponent<UChVehicle>() != null || source.GetComponent<UViperB>() != null || source.GetComponent<UChBody>() != null;
+    }
+    
+    public static ChFramed GetSensorFrame(Transform sensorTransform, GameObject bodySource)
+    {
+        ChFramed frame = new ChFramed(Utils.ToChronoFlip(sensorTransform.localPosition), Utils.ToChronoFlip(sensorTransform.localRotation));
+
+        if (bodySource.GetComponent<UViperB>() != null)
+        {
+            ChQuaterniond qAxis = new ChQuaterniond(chrono.QuatFromAngleX(chrono.CH_PI_2)); // Rotate Viper from Z-up to Y-up
+            frame.SetPos(qAxis.Rotate(frame.GetPos()));
+            frame.SetRot(qAxis.__rmul__(frame.GetRot()).__rmul__(qAxis.GetInverse()));
+        }
+
+        return frame;
+    }
+
+    public static ChBody GetSensorBody(GameObject bodySource)
+    {
+        ChBody body = null;
+
+        if (bodySource.GetComponent<UChVehicle>() != null)
+        {
+            UChVehicle vehicle = bodySource.GetComponent<UChVehicle>();
+            body = vehicle.GetChVehicle().GetChassisBody();
+        }
+        else if (bodySource.GetComponent<UViperB>() != null)
+        {
+            UViperB viper = bodySource.GetComponent<UViperB>();
+            body = viper.GetViper().GetChassis().GetBody();
+        }
+        else if (bodySource.GetComponent<UChBody>() != null)
+        {
+            UChBody uchBody = bodySource.GetComponent<UChBody>();
+            body = uchBody.GetChBody();
+        }
+
+        return body;
+    }
 
 }
 

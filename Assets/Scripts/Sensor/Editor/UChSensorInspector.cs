@@ -58,7 +58,7 @@ public class UChSensorInspector : Editor
 			}
 			else
 			{
-				EditorGUILayout.HelpBox("Filter list is not available. Try reselecting the object.", MessageType.Warning);
+				EditorGUILayout.HelpBox("Filter list is not available. Try reselecting the object.", UnityEditor.MessageType.Warning);
 			}
 			EditorGUI.indentLevel--;
 		}
@@ -145,7 +145,7 @@ public class UChSensorInspector : Editor
 	{
 		foreach (UnityEngine.Object obj in targets)
 		{
-			if (obj is not UChCameraSensor sensor)
+			if (obj is not UChSensor sensor)
 			{
 				continue;
 			}

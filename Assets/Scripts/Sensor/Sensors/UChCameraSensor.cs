@@ -33,25 +33,15 @@ public class UChCameraSensor : UChSensor
         GameObject bodySource = parent != null ? parent.gameObject : null;
         Debug.Log("UChCameraSensor: Attempting to create Camera Sensor attached to " + (bodySource != null ? bodySource.name : "null"));
 
-        if(!ParentHasSupportedBody(bodySource)){
+        if(!UChSensor.ParentHasSupportedBody(bodySource)){
             Debug.LogWarning($"UChCameraSensor: Unable to locate a valid parent body source for {name}. Sensor creation skipped.");
             return;
         }
 
-        ChBody body = null;
+        ChBody body = UChSensor.GetSensorBody(bodySource);
+        ChFramed frame = UChSensor.GetSensorFrame(transform, bodySource);
 
-        if (bodySource.GetComponent<UChVehicle>() != null){
-            UChVehicle vehicle = bodySource.GetComponent<UChVehicle>();
-            body = vehicle.GetChVehicle().GetChassisBody();
-        }
-        else if (bodySource.GetComponent<UViper>() != null)
-        {
-            UViper viper = bodySource.GetComponent<UViper>();
-            body = viper.GetViper().GetChassis().GetBody();
-        }
-
-
-        Sensor = new ChCameraSensor(body, updateRate, new ChFramed(Utils.ToChronoFlip(transform.position), Utils.ToChronoFlip(transform.rotation)),
+        Sensor = new ChCameraSensor(body, updateRate, frame,
             w, h, hFOV, supersample_factor, lensModel, use_gi, gamma, use_fog);
         Debug.Log("UChCameraSensor: Created Camera Sensor attached to " + bodySource.name);
         base.Start();
@@ -64,12 +54,6 @@ public class UChCameraSensor : UChSensor
     private void RefreshBodySourceFromParent()
     {
     }
-
-    private bool ParentHasSupportedBody(GameObject source)
-    {
-        return source.GetComponent<UChVehicle>() != null || source.GetComponent<UViper>() != null;
-    }
-
 
 
 }

@@ -107,13 +107,13 @@ public class UChCameraSensorInspector : UChSensorInspector
 
 		if (parent == null)
 		{
-			EditorGUILayout.HelpBox("Sensor must be parented under a UChVehicle or UViper. The parent will be used automatically as the body source.", MessageType.Warning);
+			EditorGUILayout.HelpBox("Sensor must be parented under a UChVehicle or UViper. The parent will be used automatically as the body source.", UnityEditor.MessageType.Warning);
 			return;
 		}
 
-		if (parent.GetComponent<UChVehicle>() == null && parent.GetComponent<UViper>() == null)
+		if (!UChSensor.ParentHasSupportedBody(parent))
 		{
-			EditorGUILayout.HelpBox("Parent object needs a UChVehicle or UViper component to host the sensor.", MessageType.Error);
+			EditorGUILayout.HelpBox("Parent object needs a UChVehicle or UViper or UChBody component to host the sensor.", UnityEditor.MessageType.Error);
 		}
 	}
 
@@ -187,12 +187,12 @@ public class UChCameraSensorInspector : UChSensorInspector
 	{
 		if (widthProp.longValue % 2 != 0 || heightProp.longValue % 2 != 0)
 		{
-			EditorGUILayout.HelpBox("For best GPU performance, prefer even resolution values.", MessageType.Info);
+			EditorGUILayout.HelpBox("For best GPU performance, prefer even resolution values.", UnityEditor.MessageType.Info);
 		}
 
 		if (supersampleProp.longValue > 4)
 		{
-			EditorGUILayout.HelpBox("Supersample factors greater than 4 can significantly slow down rendering.", MessageType.Warning);
+			EditorGUILayout.HelpBox("Supersample factors greater than 4 can significantly slow down rendering.", UnityEditor.MessageType.Warning);
 		}
 	}
 

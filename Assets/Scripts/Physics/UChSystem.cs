@@ -170,6 +170,7 @@ public class UChSystem : MonoBehaviour
     // -----------------------------
     void Awake()
     {
+        Time.timeScale = 0.1f;
         QualitySettings.vSyncCount = 0;  // VSync must be disabled
         Application.targetFrameRate = 60;
 
@@ -339,13 +340,15 @@ public class UChSystem : MonoBehaviour
                 }
         }
         chrono_system.SetCollisionSystemType(ChCollisionSystem.Type.BULLET);
+        chrono_system.SetNumThreads(40, 40, 1);
         chrono_system.SetGravitationalAcceleration(new ChVector3d(gravity.x, gravity.y, gravity.z));
     }
 
     // -----------------------------
-    void FixedUpdate()
+    void Update()
     {
-        float unity_step = Time.fixedDeltaTime;
+        // float unity_step = Time.fixedDeltaTime;
+        float unity_step = Time.deltaTime;
         ////Debug.Log("Fixed step:  " + unity_step + " =====================================");
 
         // Take as many steps as necessary to cover the base FixedUpdate step

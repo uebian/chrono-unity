@@ -63,6 +63,32 @@ public class UChSCMTerrain : MonoBehaviour
         chronoTerrain.SetBoundary(new ChAABB(new ChVector3d(-terrainData.size.x / 2.0, -terrainData.size.z / 2.0, 0),
                                             new ChVector3d( terrainData.size.x / 2.0,  terrainData.size.z / 2.0, 0))); // Z doesn't matter here
         // chronoTerrain.SetReferenceFrame(new ChCoordsysd(new ChVector3d(0,0,0),qAxis));
+        
+        // Create lunar regolith visual material
+        var regolith_mat = new ChVisualMaterial();
+        // var regolith_tex_mat = new ChVisualMaterial();
+        regolith_mat.SetDiffuseColor(new ChColor(0.4f * 1.983f, 0.4f * 1.667f, 0.4f * 1.410f));
+        regolith_mat.SetUseSpecularWorkflow(true);
+        regolith_mat.SetRoughness(1.0f);
+        regolith_mat.SetMetallic(0.0f);
+
+        // regolith_tex_mat.SetKdTexture(chrono.GetChronoDataFile("robot/curiosity/rocks/moon_dusted_05_diff_1k.png"));
+        // regolith_tex_mat.SetRoughnessTexture(chrono.GetChronoDataFile("robot/curiosity/rocks/moon_dusted_05_rough_1k.png"));
+        // regolith_tex_mat.SetNormalMapTexture(chrono.GetChronoDataFile("robot/curiosity/rocks/moon_dusted_05_nor_gl_1k.png"));
+        // regolith_tex_mat.SetDisplacementTexture(chrono.GetChronoDataFile("robot/curiosity/rocks/moon_dusted_05_disp_1k.png"));
+        // regolith_tex_mat.SetMetallic(0.0f);
+        // regolith_tex_mat.SetTextureScale(9.0f, 3.0f);
+        
+        regolith_mat.SetClassID(255); // first 4 bits in semantic cam, FF00
+        regolith_mat.SetInstanceID(65280); // last 4 bits in semantic cam, 00FF
+        // regolith_tex_mat.SetClassID(255); // first 4 bits in semantic cam, FF00
+        // regolith_tex_mat.SetInstanceID(65280); // last 4 bits in semantic cam, 00FF
+
+        var mesh = chronoTerrain.GetMesh();
+        if(mesh.GetNumMaterials() == 0) mesh.AddMaterial(regolith_mat);
+		else mesh.GetMaterials()[0] = regolith_mat;
+
+
 
         var chTriangleTerrain = ConvertTerrainToChTriangleMesh(sourceTerrain);
 
@@ -169,7 +195,6 @@ public class UChSCMTerrain : MonoBehaviour
         chronoTerrain.Synchronize(UChSystem.chrono_system.GetChTime());
         chronoTerrain.Advance(UChSystem.chrono_system.GetStep());
 
-        ChVector2i test;
         ChSCMTerrainNodeLevelList modifiedNodes = chronoTerrain.GetModifiedNodes(false);
 
         TerrainData tData = sourceTerrain.terrainData;
